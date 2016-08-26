@@ -1,10 +1,10 @@
 # QCHECK
 
 QCHECK is a command line quality checker. It is based on code metrics used to evaluate software maintainability.
-lloc: Logical lines of code
-cc: McCabe cyclomatic complexity
-vhalstead: Halstead volume
-pep8: Adherence to Python coding standards (PEP8)
+ - lloc: Logical lines of code
+ - cc: McCabe cyclomatic complexity
+ - vhalstead: Halstead volume
+ - pep8: Adherence to Python coding standards (PEP8)
 
 
 ## License
