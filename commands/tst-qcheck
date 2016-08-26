@@ -1,0 +1,270 @@
+#!/usr/bin/env python
+# coding: utf-8
+# 
+#  TST-Online command line quality checker. Based on code metrics used to evaluate software maintainability.
+#  lloc: Logical Lines of code
+#  cc: McCabe cyclomatic complexity
+#  vhalstead: Halstead volume
+#  pep8: Adherence to Python coding standards (PEP8)
+#
+# Eliane Araujo, 2016
+#
+
+import os
+import sys
+import json
+import glob
+import argparse
+
+import tstlib
+import qchecklib
+
+# Feedback Messages
+SHORTHEADER = "There are few lines on program header."
+HIGHLLOC = "There are too many lines of code."
+HIGHCC = "There are too many decision points."
+HIGHVHALSTEAD = "There are too many operations."
+NOREFERENCE = "There are no reference values."
+
+# Output Settings
+COLNUMBERWIDTH = 5
+COLTEXTWIDTH = 25
+
+def get_ref_metrics(): 
+    tstjson = tstlib.read_tstjson(exit=True)
+    if tstjson.get("quality"):
+        return tstjson.get("quality")[0]
+    else:
+        return {}
+    
+def get_quality_metrics( raw_metrics ): 
+    ref_metrics = get_ref_metrics()
+    metrics = {}
+    
+    # Ratio metrics
+    if ref_metrics:
+        metrics["lloc"] = float(raw_metrics.get("lloc")) / float(ref_metrics.get("lloc"))
+        metrics["vhalstead"] = float(raw_metrics.get("vhalstead")) / float(ref_metrics.get("vhalstead"))
+        metrics["cc"] = float(raw_metrics.get("cc")) / float(ref_metrics.get("cc"))
+    #else:
+     #   metrics["lloc"], metrics["vhalstead"], metrics["cc"] = 1, 1, 1
+        
+    return metrics
+
+def check_header( lines ):
+    #Ad hoc number of lines to assess header quality
+    return True if lines > 2 else False 
+
+def quality_report( raw_metrics ):
+    """
+    For each rmetric (rlloc, rcc, rh, rpep8) assign a feedback message.
+    The threashold to show them is 20%.
+    """
+    quality_metrics = get_quality_metrics( raw_metrics )    
+    report = {}
+    if not quality_metrics:
+        report["message"] = NOREFERENCE
+
+    #RCC
+    report["cc"] = [raw_metrics.get("cc")]
+    if quality_metrics.get("cc") > 1.2:
+        report["cc"].append( HIGHCC )
+    #RLLOC
+    report["lloc"] = [raw_metrics.get("lloc")]
+    if quality_metrics.get("lloc") > 1.2:
+        report["lloc"].append( HIGHLLOC )
+    #RH
+    report["vhalstead"] = [raw_metrics.get("vhalstead")]
+    if quality_metrics.get("vhalstead") > 1.2:
+        report["vhalstead"].append( HIGHVHALSTEAD )
+    #Rpep8
+    if raw_metrics.get("pep8"):
+        report["pep8"] = raw_metrics.get("pep8")
+    #Header
+    report["header"] = [raw_metrics.get("header")]    
+    if not check_header(raw_metrics.get("header")):
+        report["header"].append( SHORTHEADER )
+    return report
+
+def get_metrics(filename):
+    results = {
+        "lloc": qchecklib.lloc(filename),
+        "cc": qchecklib.cc(filename),
+        "vhalstead": qchecklib.vhalstead(filename),
+        "pep8": qchecklib.pep8(filename),
+        "header": qchecklib.header_lines(filename)
+    }
+    return results
+
+def get_rawmetrics(filename):
+    results = {
+        "lloc": qchecklib.lloc(filename),
+        "cc": qchecklib.cc(filename),
+        "vhalstead": qchecklib.vhalstead(filename),
+        "pep8": qchecklib.pep8count(filename),
+        "header": qchecklib.header_lines(filename)
+    }  
+    return results
+
+def pack_readablefeedback(results):
+    line = ""
+    if not results:
+        return line
+    #Message
+    if results.get("message") and len(results.get("message")) > 1:
+        line+= "%s\n" % results.get("message")
+    #Header
+    if results.get("header") and len(results.get("header")) > 1:
+        line+= "%s\n" % results.get("header")[1]
+    #RCC
+    if results.get("cc") and len(results.get("cc")) > 1:
+        line+= "%s\n" % results.get("cc")[1]
+    #LLOC
+    if results.get("lloc") and len(results.get("lloc")) > 1:
+        line+=  "%s\n" % results.get("lloc")[1]
+    #RVHALSTEAD
+    if results.get("vhalstead") and len(results.get("vhalstead")) > 1:
+        line+=  "%s\n" % results.get("vhalstead")[1]
+    #RPEP8
+    if results.get("pep8") and len(results.get("pep8")) > 1:
+        for i in range(1, len(results.get("pep8"))):
+            line+=  "%s\n" % results.get("pep8")[i]
+    
+    return line[:-1]
+
+def pack_readablemetrics(results):
+    
+    line = ""
+    if not results:
+        return line
+    #RCC
+    if results.get("cc") is not None:
+        line += '{0:>{width}}'.format(results.get("cc"), width = COLNUMBERWIDTH)
+    #Header
+    if results.get("header") is not None:
+        line += '{0:>{width}}'.format(results.get("header"), width = COLNUMBERWIDTH)
+    #LLOC
+    if results.get("lloc") is not None:
+        line += '{0:>{width}}'.format(results.get("lloc"), width = COLNUMBERWIDTH)
+    #RPEP8
+    if results.get("pep8") is not None:
+        line += '{0:>{width}}'.format(results.get("pep8"), width = COLNUMBERWIDTH)
+    #RVHALSTEAD
+    if results.get("vhalstead") is not None:
+        line += '{0:>{width}.{precision}f}'.format(results.get("vhalstead"), \
+                                                   width = COLNUMBERWIDTH + 3, precision = 2)
+    
+    return line
+
+def pack_profresults(results):
+    
+    line = ""
+    ref_metrics = pack_readablemetrics(get_ref_metrics())
+    if ref_metrics:
+        line += '{0:{width}.{width}} {1}\n'.format("REFERENCE", ref_metrics, width = COLTEXTWIDTH)
+    else:
+        line += NOREFERENCE + '\n'
+        
+    for t in results:
+        line += '{0:{width}.{width}} {1}\n'.format(t[0], pack_readablemetrics(t[1]), width = COLTEXTWIDTH)
+        
+    return line[:-1]
+
+def pack_results(results):    
+    return tstlib.data2json(results)
+
+def get_filestocheck(pattern):
+     #Code borrowed from tst_test.py (c) 2011-2014 Dalton Serey, UFCG
+    
+     # Obtain filenames
+    if len(pattern) == 1 and os.path.exists(pattern[0]):
+        filenames = [pattern[0]]
+    elif len(pattern) == 1:
+        fn_pattern = "*%s*.py" % pattern[0]
+        filenames = glob.glob(fn_pattern)
+    #All .py files
+    elif len(pattern) == 0:
+        fn_pattern = "*.py"
+        filenames = glob.glob(fn_pattern)
+    else:
+        filenames = pattern
+
+    # remove files
+    files_to_ignore = ['tst.json']
+    filenames = list(set(filenames) - set(files_to_ignore))
+    
+    return filenames
+
+def parse_arguments():
+    from argparse import RawTextHelpFormatter
+
+    parser = argparse.ArgumentParser(description='Check python code static quality metrics.', formatter_class=RawTextHelpFormatter)
+    parser.add_argument("-m", "--metrics", nargs = 1, help="get values of cc, header, lloc, pep8, vhalstead")
+    parser.add_argument("-f", "-fb", "--feedback", nargs = 1, help="present warning messages referring to static quality metrics")
+    parser.add_argument("-p","-prof", "--prof", nargs = "*", help="get values of cc, header, lloc, pep8, vhalstead referring to a given pattern or file(s)")
+    parser.add_argument("-o", "--outputformat", type=str, default="human", choices=["human","json"], help="set output format")
+    
+    parser.add_argument("filename", nargs="*", default = [""])
+    
+    args = parser.parse_args()
+    
+    if args.metrics:
+        filenames = args.metrics[0]
+        function = "metrics"
+    elif args.feedback:
+        filenames = args.feedback[0]
+        function = "feedback"
+    elif args.prof is not None:
+        filenames = args.prof
+        function = "prof"
+    elif args.filename:
+        filenames = args.filename[0]
+        function = "feedback"
+    
+    return filenames, function, args.outputformat
+
+def main():
+    
+    filenames, function, outputformat = parse_arguments()
+    try:
+        if function in ('metrics') :
+            # metrics output human-readable format
+            results = get_rawmetrics(filenames)
+            report = pack_results(results) if outputformat == 'json' else pack_readablemetrics(results)
+            
+        elif function in ('feedback'): 
+            # feedback output human-readable format
+            if not get_ref_metrics():
+                report = NOREFERENCE
+            else:
+                results = quality_report( get_metrics(filenames) )
+                report = pack_results(results) if outputformat == 'json' else pack_readablefeedback(results)
+
+        elif function in ('prof'):
+            setofcode = get_filestocheck(filenames)
+            if not setofcode:
+                print( "qcheck: nothing to check in '%s'" % filenames[0] )
+                sys.exit()
+            results = []
+            for code in setofcode:
+                results.append((code, get_rawmetrics(code)))
+            report = pack_profresults(results)
+            
+        print( report )
+    
+    except IOError:
+        print("Usage: tst_qcheck.py [options] code.py")
+        sys.exit(1)
+    
+
+if __name__ == "__main__":
+    
+    if len(sys.argv) < 2:
+        print("Usage: tst_qcheck.py [options] code.py")
+        sys.exit()
+     
+    if len(sys.argv) > 1 and sys.argv[1] == '--one-line-help':
+        print("check code quality")
+        sys.exit()
+    
+    main()
