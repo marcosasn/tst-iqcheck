@@ -1,30 +1,27 @@
 #!/usr/bin/env bash
 # coding: utf-8
-# (c) 2016 Dalton Serey, UFCG
 #
-# Interactive TST Installer script. Run this script to download
-# and install TST CLI tools. This script can be invoked with
-# these options:
+# Interactive QCHECK installer script. Run this script to download
+# and install qcheck, a TST CUSTOM COMMAND tool. Be sure that TST is
+# already installed in your environment.
+# This script can be invoked with these options:
 #
 # --pre-release
 #       Download the latest pre-release version available.
-#
-# --update
-#       Update existing installation. In this mode, the install
-#       script runs in non-interactive mode. It prints less
-#       evolution messages, it doesn't ask whether or not to
-#       overwrite previous installations, it doesn't configure
-#       the enviroment and doesn't delete old installations of
-#       tst.  This mode is used by the tst update command.
 #
 # --installation-dir <dir>
 #       Install the new version into <dir>.
 
 # constants
-INSTALL_DIR=~/.tst.install
+INSTALL_DIR=~/.tst/qcheck.install
 TST_DIR=~/.tst
 CONFIG_FILE=~/.tst/config.json
 UPDATE="false"
+
+# URL
+CC_URL=https://raw.githubusercontent.com/mattjmorrison/Python-Cyclomatic-Complexity/master/cc.py
+PYCODESTYLE_URL= https://raw.githubusercontent.com/PyCQA/pycodestyle/master/pycodestyle.py
+RADON_URL=
 
 # colors
 RESET="\033[0m"
@@ -54,11 +51,11 @@ QUESTION=$LGREEN
 # read either 'y' or 'n' from keyboard
 function get_yes_or_no {
     while true; do 
-        read -s -n 1 ANSWER
-        if [ "$ANSWER" == 'y' ]; then break; fi
-        if [ "$ANSWER" == 'n' ]; then break; fi
+        read -s -n 1 answer
+        [[ "$answer" == "y" ]] && break
+        [[ "$answer" == "n" ]] && break
     done
-    echo $ANSWER
+    echo $answer
 }
 
 # print with color
@@ -84,9 +81,6 @@ while (( $# > 0 )); do
         --pre-release)
             DOWNLOAD_DEV_VERSION="true"
             ;;
-        --update)
-            UPDATE="true"
-            ;;
         --installation-dir)
             INSTALLATION_DIR="true"
             TST_DIR=$2
@@ -108,6 +102,14 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
+# require pip or abort
+PIP=$(command -v curl)
+if [ $? != 0 ]; then
+    print "The installation script requires the pip command" $WARNING
+    print "Aborting installation"
+    exit 1
+fi
+
 # require unzip or abort
 UNZIP=$(command -v unzip)
 if [ $? != 0 ]; then
@@ -118,15 +120,14 @@ fi
 
 # identify releases url
 if [ "$DOWNLOAD_DEV_VERSION" == "true" ]; then
-    RELEASES_URL='https://api.github.com/repos/daltonserey/tst/releases'
-    if [ "$UPDATE" == "false" ]; then
-        print "* fetching development pre-release information\n"
-    fi
+    RELEASES_URL='https://api.github.com/repos/elianearaujo/tst-qcheck/releases'
+    print "* fetching development pre-release information\n"
 else
-    RELEASES_URL='https://api.github.com/repos/daltonserey/tst/releases/latest'
-    if [ "$UPDATE" == "false" ]; then
-        print "* fetching latest release information\n"
-    fi
+    #Checar qual é essa URL
+    #Corrigir aqui!!
+    RELEASES_URL='https://api.github.com/repos/elianearaujo/tst-qcheck/releases/latest'
+    print "* fetching latest release information\n"
+    
 fi
 
 # download releases info: identify tag_name and zipball_url
@@ -139,37 +140,12 @@ fi
 TAG_NAME=$(echo -e "$RELEASES" | grep "tag_name" | cut -f 4 -d '"' | head -1)
 ZIPBALL_URL=$(echo -e "$RELEASES" | grep "zipball_url" | cut -f 4 -d '"' | head -1)
 
+
 # cancel installation if there's no release available
 if [ "$TAG_NAME" == "" ]; then
     print "No release available\n" $WARNING
     print "Installation canceled\n" $IMPORTANT
     exit 1
-fi
-
-# create TST_DIR if it doesn't exist
-mkdir -p $TST_DIR
-
-# check for previous installation version
-if [ -f "$TST_DIR/release.json" ]; then
-    PREVIOUS_TAG_NAME=$(cat $TST_DIR/release.json | grep "tag_name" | cut -f 4 -d '"')
-
-    # notify user about previous installation
-    if [ "$PREVIOUS_TAG_NAME" == "$TAG_NAME" ]; then
-        print "Installed tst is up-to-date (version $TAG_NAME)\n" $IMPORTANT
-        exit
-    else
-        print "New version of tst available (version $TAG_NAME)\n" $IMPORTANT
-    fi
-
-    if [ "$UPDATE" == "false" ]; then
-        # ask user whether to proceed and overwrite installation
-        print "Proceed and overwrite? (y/n) " $QUESTION
-        get_yes_or_no
-        if [ "$ANSWER" == "n" ]; then
-            print "Installation cancelled by user\n" $IMPORTANT
-            exit 0
-        fi
-    fi
 fi
 
 # create new installation dir
@@ -183,10 +159,8 @@ mkdir -p $INSTALL_DIR
 
 # download latest release into INSTALL_DIR
 cd $INSTALL_DIR
-if [ "$UPDATE" == "false" ]; then
-    print "* downloading release zip\n"
-fi
-curl -q -Lko tst.zip $ZIPBALL_URL 2> /dev/null
+
+curl -q -Lko qcheck.zip $ZIPBALL_URL 2> /dev/null
 if [ $? != 0 ]; then
     rm -rf $INSTALL_DIR
     echo $ZIPBALL_URL
@@ -197,60 +171,64 @@ if [ $? != 0 ]; then
 fi
 
 # unzip and install tst scripts within INSTALL_DIR
-if [ "$UPDATE" == "false" ]; then
-    print "* unzipping and installing tst scripts\n"
+print "* unzipping and installing qcheck scripts\n"
+unzip -q qcheck.zip
+rm qcheck.zip
+
+# move files to TST_DIR
+mv tst-qcheck*/bin/* $TST_DIR/bin/
+mv tst-qcheck*/commands/* $TST_DIR/commands/
+mv tst-qcheck*/etc/* $TST_DIR/etc/
+
+# download third party dependencies
+# pycodestyle
+curl -o pycodestyle.py $PYCODESTYLE_URL 2> /dev/null
+if [ $? != 0 ]; then
+    print "Couldn't download dependendy\n" $WARNING
+    print "Installation aborted\n"
+    exit 1
 fi
-unzip -q tst.zip
-rm tst.zip
+mv pycodestyle.py $TST_DIR/bin/
 
-# install files in TST_DIR
-mkdir -p $TST_DIR/bin
-mv daltonserey-tst*/bin/* $TST_DIR/bin/
-mkdir -p $TST_DIR/commands
-mv daltonserey-tst*/commands/* $TST_DIR/commands/
-mkdir -p $TST_DIR/etc
-mv daltonserey-tst*/etc/* $TST_DIR/etc/
-mv daltonserey-tst*/CHANGELOG.md $TST_DIR/
-mv daltonserey-tst*/README.md $TST_DIR/
-mv daltonserey-tst*/LICENSE $TST_DIR/
+# cc
+curl -o CC.py $CC_URL 2> /dev/null
+if [ $? != 0 ]; then
+    print "Couldn't download dependendy\n" $WARNING
+    print "Installation aborted\n"
+    exit 1
+fi
+mv cc.py $TST_DIR/bin/
 
-# update release.json in TST_DIR
-cd $TST_DIR
-echo "{\"tag_name\": \"$TAG_NAME\"}" > $TST_DIR/release.json
+# Radon
+#pip install radon
+#if [ $? != 0 ]; then
+#    print "Couldn't install radon dependendy\n" $WARNING
+#    print "Installation aborted\n"
+#    exit 1
+#fi
+
+mkdir -p $TST_DIR/qcheck
+mv tst-qcheck*/CHANGELOG.md $TST_DIR/qcheck
+mv tst-qcheck*/README.md $TST_DIR/qcheck
+mv tst-qcheck*/LICENSE $TST_DIR/qcheck
 
 # end installation
 rm -rf $INSTALL_DIR
 print "Installation finished\n" $IMPORTANT
 
-# configure environment if in interactive mode
-if [ "$UPDATE" == "false" ]; then
-    print "\nConfigure environment? (y/n) " $QUESTION
-    get_yes_or_no
-    if [ "$ANSWER" == "y" ]; then
-        $TST_DIR/etc/setenv.sh
-    else
-        print "Environment was$WARNING not $NORMAL configured.\n"
-        print "Remember to add $IMPORTANT$TST_DIR/bin $NORMAL to your PATH\n"
-        exit
-    fi
-    print "\nRemember that to use tst immediately, you must, either:\n" $IMPORTANT
-    print "- type the command:$IMPORTANT source ~/.bashrc\n"
-    print "  or\n"
-    print "- close the current shell and open a new one.\n"
-fi
-
-# delete/rename previous installation
-if [ "$UPDATE" == "false" ]; then
-    OLD_TST=~/tst
-    if [ -d "$OLD_TST" ]; then
-        print "\nWe found what seems to be an older installation.\n" $IMPORTANT
-        print "$OLD_TST\n" $WARNING
-        print "Delete? (y/n) " $QUESTION
-        get_yes_or_no
-        if [ "$ANSWER" == "y" ]; then
-            mkdir -p ~/.old_tst
-            mv $OLD_TST ~/.old_tst/
-            print "The old directory was moved to ~/.old_tst\n" $IMPORTANT
-        fi
-    fi
+# configure environment variable TST_CUSTOM_COMMAND
+print "\nConfigure environment? (y/n) " $QUESTION
+get_yes_or_no
+if [[ "$answer" == "y" ]]; then
+    cp tst.paths.inc tst.paths.inc.ori
+    cat qcheck.inc >> tst.paths.inc
+    $TST_DIR/etc/setenv.sh
+    cp tst.paths.inc.ori tst.paths.inc
+    rm tst.paths.inc.or
+    print "Finished environment configuration\n" $IMPORTANT
+    print "\nTo make configuration take effect immediately, type the command:\n"
+    print "*$IMPORTANT source ~/.bashrc$NORMAL\n"
+else
+    print "Environment was$WARNING not$NORMAL configured.\n"
+    print "Remember to add $IMPORTANT$TST_DIR/bin$NORMAL to PATH and PYTHONPATH\n"
 fi
