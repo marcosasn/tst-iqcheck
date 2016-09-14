@@ -17,10 +17,11 @@ INSTALL_DIR=~/.tst/qcheck.install
 TST_DIR=~/.tst
 CONFIG_FILE=~/.tst/config.json
 UPDATE="false"
+BASHRC=~/.bashrc
 
 # URL
-CC_URL=https://raw.githubusercontent.com/mattjmorrison/Python-Cyclomatic-Complexity/master/cc.py
-PYCODESTYLE_URL= https://raw.githubusercontent.com/PyCQA/pycodestyle/master/pycodestyle.py
+CC_URL='https://raw.githubusercontent.com/mattjmorrison/Python-Cyclomatic-Complexity/master/cc.py'
+PYCODESTYLE_URL='https://raw.githubusercontent.com/PyCQA/pycodestyle/master/pycodestyle.py'
 RADON_URL=
 
 # colors
@@ -94,6 +95,9 @@ while (( $# > 0 )); do
     shift
 done
 
+print "1. Passou pelo While" $WARNING
+print "\n"
+
 # require curl or abort
 CURL=$(command -v curl)
 if [ $? != 0 ]; then
@@ -129,6 +133,9 @@ else
     print "* fetching latest release information\n"
     
 fi
+
+print "2. Identificou releases" $WARNING
+print "\n"
 
 # download releases info: identify tag_name and zipball_url
 RELEASES=$(curl -q $RELEASES_URL 2> /dev/null)
@@ -170,34 +177,54 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
+print "3. Pegou o arquivo" $WARNING
+print "\nChecar ~/.tst/qcheck.install" $WARNING
+print "\n"
+
+
 # unzip and install tst scripts within INSTALL_DIR
 print "* unzipping and installing qcheck scripts\n"
 unzip -q qcheck.zip
 rm qcheck.zip
 
 # move files to TST_DIR
-mv tst-qcheck*/bin/* $TST_DIR/bin/
-mv tst-qcheck*/commands/* $TST_DIR/commands/
-mv tst-qcheck*/etc/* $TST_DIR/etc/
+mv elianearaujo-tst-qcheck*/bin/* $TST_DIR/bin/
+mv elianearaujo-tst-qcheck*/commands/* $TST_DIR/commands/
+
+print "4. Moveu os arquivos para os dirs" $WARNING
+print "\nChecar ~/.tst/bin" $WARNING
+print "\nChecar ~/.tst/commands" $WARNING
+print "\n"
+
 
 # download third party dependencies
 # pycodestyle
-curl -o pycodestyle.py $PYCODESTYLE_URL 2> /dev/null
+curl -q $PYCODESTYLE_URL --output pycodestyle.py 2> /dev/null
 if [ $? != 0 ]; then
     print "Couldn't download dependendy\n" $WARNING
     print "Installation aborted\n"
     exit 1
 fi
 mv pycodestyle.py $TST_DIR/bin/
+chmod +x $TST_DIR/bin/pycodestyle.py
+
+print "5. Baixou pycodestyle" $WARNING
+print "\nChecar ~/.tst/bin" $WARNING
+print "\n"
 
 # cc
-curl -o CC.py $CC_URL 2> /dev/null
+curl -q $CC_URL --output cc.py 2> /dev/null
 if [ $? != 0 ]; then
     print "Couldn't download dependendy\n" $WARNING
     print "Installation aborted\n"
     exit 1
 fi
 mv cc.py $TST_DIR/bin/
+chmod +x $TST_DIR/bin/cc.py
+
+print "6. Baixou cc" $WARNING
+print "\nChecar ~/.tst/bin" $WARNING
+print "\n"
 
 # Radon
 #pip install radon
@@ -207,24 +234,29 @@ mv cc.py $TST_DIR/bin/
 #    exit 1
 #fi
 
+#print "7. Baixou radon" $WARNING
+#print "\nChecar ~/.tst/bin" $WARNING
+#print "\n"
+
 mkdir -p $TST_DIR/qcheck
-mv tst-qcheck*/CHANGELOG.md $TST_DIR/qcheck
-mv tst-qcheck*/README.md $TST_DIR/qcheck
-mv tst-qcheck*/LICENSE $TST_DIR/qcheck
+mv elianearaujo-tst-qcheck*/LICENSE $TST_DIR/qcheck/
+mv elianearaujo-tst-qcheck*/README.md $TST_DIR/qcheck/
 
 # end installation
+cd $TST_DIR
 rm -rf $INSTALL_DIR
 print "Installation finished\n" $IMPORTANT
 
-# configure environment variable TST_CUSTOM_COMMAND
+print "8. Cleanup" $WARNING
+print "\nChecar ~/.tst/qcheck" $WARNING
+print "\n"
+
+
+# configure environment variable TST_CUSTOM_COMMANDS
 print "\nConfigure environment? (y/n) " $QUESTION
 get_yes_or_no
 if [[ "$answer" == "y" ]]; then
-    cp tst.paths.inc tst.paths.inc.ori
-    cat qcheck.inc >> tst.paths.inc
-    $TST_DIR/etc/setenv.sh
-    cp tst.paths.inc.ori tst.paths.inc
-    rm tst.paths.inc.or
+    echo "export TST_CUSTOM_COMMANDS='qcheck'" >> $BASHRC
     print "Finished environment configuration\n" $IMPORTANT
     print "\nTo make configuration take effect immediately, type the command:\n"
     print "*$IMPORTANT source ~/.bashrc$NORMAL\n"
@@ -232,3 +264,8 @@ else
     print "Environment was$WARNING not$NORMAL configured.\n"
     print "Remember to add $IMPORTANT$TST_DIR/bin$NORMAL to PATH and PYTHONPATH\n"
 fi
+
+print "9. Set environment variable " $WARNING
+print "\nChecar echo $TST_CUSTOM_COMMANDS" $WARNING
+print "\n"
+
