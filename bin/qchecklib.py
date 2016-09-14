@@ -6,8 +6,10 @@ import os
 import sys
 import commands
 
+
 try:
-    from cc import complexity
+    #from cc import complexity
+    from cc import measure_complexity
 except ImportError:
     print("tst quality checker needs cc.py to work.")
     sys.exit(1)
@@ -91,7 +93,9 @@ def cc(filename):
 
     except Exception as e:
         # Use cc.py
-        cc = complexity(code)['TOTAL']
+        stats = measure_complexity(code)
+        cc = stats.complexity
+        #cc = complexity(code)['TOTAL']
     program.close()
     return cc
 
