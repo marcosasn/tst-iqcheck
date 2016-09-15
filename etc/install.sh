@@ -95,9 +95,6 @@ while (( $# > 0 )); do
     shift
 done
 
-print "1. Passou pelo While" $WARNING
-print "\n"
-
 # require curl or abort
 CURL=$(command -v curl)
 if [ $? != 0 ]; then
@@ -133,9 +130,6 @@ else
     print "* fetching latest release information\n"
     
 fi
-
-print "2. Identificou releases" $WARNING
-print "\n"
 
 # download releases info: identify tag_name and zipball_url
 RELEASES=$(curl -q $RELEASES_URL 2> /dev/null)
@@ -177,11 +171,6 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
-print "3. Pegou o arquivo" $WARNING
-print "\nChecar ~/.tst/qcheck.install" $WARNING
-print "\n"
-
-
 # unzip and install tst scripts within INSTALL_DIR
 print "* unzipping and installing qcheck scripts\n"
 unzip -q qcheck.zip
@@ -190,12 +179,6 @@ rm qcheck.zip
 # move files to TST_DIR
 mv elianearaujo-tst-qcheck*/bin/* $TST_DIR/bin/
 mv elianearaujo-tst-qcheck*/commands/* $TST_DIR/commands/
-
-print "4. Moveu os arquivos para os dirs" $WARNING
-print "\nChecar ~/.tst/bin" $WARNING
-print "\nChecar ~/.tst/commands" $WARNING
-print "\n"
-
 
 # download third party dependencies
 # pycodestyle
@@ -222,10 +205,6 @@ fi
 mv cc.py $TST_DIR/bin/
 chmod +x $TST_DIR/bin/cc.py
 
-print "6. Baixou cc" $WARNING
-print "\nChecar ~/.tst/bin" $WARNING
-print "\n"
-
 # Radon
 #pip install radon
 #if [ $? != 0 ]; then
@@ -246,11 +225,6 @@ mv elianearaujo-tst-qcheck*/README.md $TST_DIR/qcheck/
 cd $TST_DIR
 rm -rf $INSTALL_DIR
 print "Installation finished\n" $IMPORTANT
-
-print "8. Cleanup" $WARNING
-print "\nChecar ~/.tst/qcheck" $WARNING
-print "\n"
-
 
 # configure environment variable TST_CUSTOM_COMMANDS
 print "\nConfigure environment? (y/n) " $QUESTION
