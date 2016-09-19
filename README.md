@@ -35,6 +35,9 @@ QCHECK must be installed using the command below. It uses an existing TST config
 
 ### Latest release
 
+To install the latest stable release, run the following command.
+
+$ bash -c "$(curl -q -sSL http://bit.ly/qcheck-install)"
 
 
 ### Development pre-release
