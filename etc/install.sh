@@ -22,7 +22,6 @@ BASHRC=~/.bashrc
 # URL
 CC_URL='https://raw.githubusercontent.com/mattjmorrison/Python-Cyclomatic-Complexity/master/cc.py'
 PYCODESTYLE_URL='https://raw.githubusercontent.com/PyCQA/pycodestyle/master/pycodestyle.py'
-RADON_URL=
 
 # colors
 RESET="\033[0m"
@@ -72,9 +71,11 @@ function print {
 
 # MAIN
 if [[ "$EUID" == "0" ]]; then
-   print "This script cannot be run as root\n" $WARNING
+   print "This script cannot be run as root\n" $IMPORTANT
    exit 1
 fi
+
+print "Installing qcheck scripts\n" $WARNING
 
 # process options
 while (( $# > 0 )); do
@@ -124,8 +125,6 @@ if [ "$DOWNLOAD_DEV_VERSION" == "true" ]; then
     RELEASES_URL='https://api.github.com/repos/elianearaujo/tst-qcheck/releases'
     print "* fetching development pre-release information\n"
 else
-    #Checar qual é essa URL
-    #Corrigir aqui!!
     RELEASES_URL='https://api.github.com/repos/elianearaujo/tst-qcheck/releases/latest'
     print "* fetching latest release information\n"
     
@@ -191,10 +190,6 @@ fi
 mv pycodestyle.py $TST_DIR/bin/
 chmod +x $TST_DIR/bin/pycodestyle.py
 
-print "5. Baixou pycodestyle" $WARNING
-print "\nChecar ~/.tst/bin" $WARNING
-print "\n"
-
 # cc
 curl -q $CC_URL --output cc.py 2> /dev/null
 if [ $? != 0 ]; then
@@ -206,16 +201,12 @@ mv cc.py $TST_DIR/bin/
 chmod +x $TST_DIR/bin/cc.py
 
 # Radon
-#pip install radon
-#if [ $? != 0 ]; then
-#    print "Couldn't install radon dependendy\n" $WARNING
-#    print "Installation aborted\n"
-#    exit 1
-#fi
-
-#print "7. Baixou radon" $WARNING
-#print "\nChecar ~/.tst/bin" $WARNING
-#print "\n"
+pip install radon
+if [ $? != 0 ]; then
+    print "Couldn't install radon dependendy\n" $WARNING
+    print "Installation aborted\n"
+    exit 1
+fi
 
 mkdir -p $TST_DIR/qcheck
 mv elianearaujo-tst-qcheck*/LICENSE $TST_DIR/qcheck/
@@ -238,8 +229,3 @@ else
     print "Environment was$WARNING not$NORMAL configured.\n"
     print "Remember to add $IMPORTANT$TST_DIR/bin$NORMAL to PATH and PYTHONPATH\n"
 fi
-
-print "9. Set environment variable " $WARNING
-print "\nChecar echo $TST_CUSTOM_COMMANDS" $WARNING
-print "\n"
-

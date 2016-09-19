@@ -8,7 +8,6 @@ import commands
 
 
 try:
-    #from cc import complexity
     from cc import measure_complexity
 except ImportError:
     print("tst quality checker needs cc.py to work.")
@@ -74,7 +73,6 @@ def halstead_metrics(options, filename):
     code = program.read()
 
     if options == 'vol':
-        #h = "%.2f" % h_visit(code).volume
         h = h_visit(code).volume
     else:
         h = h_visit(code)
@@ -95,12 +93,10 @@ def cc(filename):
         # Use cc.py
         stats = measure_complexity(code)
         cc = stats.complexity
-        #cc = complexity(code)['TOTAL']
     program.close()
     return cc
 
 def lloc(filename):
-    #print(filename)
     program = open(filename, 'r')
     code = program.read()
     lines = raw_metrics(code)[1]
