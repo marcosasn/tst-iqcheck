@@ -183,7 +183,7 @@ mv elianearaujo-tst-qcheck*/commands/* $TST_DIR/commands/
 # pycodestyle
 curl -q $PYCODESTYLE_URL --output pycodestyle.py 2> /dev/null
 if [ $? != 0 ]; then
-    print "Couldn't download dependendy\n" $WARNING
+    print "Couldn't download dependency\n" $WARNING
     print "Installation aborted\n"
     exit 1
 fi
@@ -193,7 +193,7 @@ chmod +x $TST_DIR/bin/pycodestyle.py
 # cc
 curl -q $CC_URL --output cc.py 2> /dev/null
 if [ $? != 0 ]; then
-    print "Couldn't download dependendy\n" $WARNING
+    print "Couldn't download dependency\n" $WARNING
     print "Installation aborted\n"
     exit 1
 fi
@@ -203,7 +203,7 @@ chmod +x $TST_DIR/bin/cc.py
 # Radon
 pip install radon
 if [ $? != 0 ]; then
-    print "Couldn't install radon dependendy\n" $WARNING
+    print "Couldn't install radon dependency\n" $WARNING
     print "Installation aborted\n"
     exit 1
 fi
