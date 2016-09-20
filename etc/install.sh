@@ -105,9 +105,9 @@ if [ $? != 0 ]; then
 fi
 
 # require pip or abort
-PIP=$(command -v curl)
+PIP=$(command -v pip)
 if [ $? != 0 ]; then
-    print "The installation script requires the pip command" $WARNING
+    print "The installation script requires the python-pip command" $WARNING
     print "Aborting installation"
     exit 1
 fi
