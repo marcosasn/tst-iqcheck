@@ -106,7 +106,7 @@ fi
 
 # require radon or abort
 RADON=$(command -v radon)
-if [ $? == 0 ]; then
+if [ $? != 0 ]; then
     print "\nQcheck requires radon to work.\n" $WARNING
     print "Get radon at https://pypi.python.org/pypi/radon.\n" 
     print "* Tip: pip install radon\n" $IMPORTANT
