@@ -99,18 +99,20 @@ done
 # require curl or abort
 CURL=$(command -v curl)
 if [ $? != 0 ]; then
-    print "The installation script requires the curl command" $WARNING
+    print "The installation script requires the curl command\n" $WARNING
     print "Aborting installation"
     exit 1
 fi
 
 # require radon or abort
 RADON=$(command -v radon)
-if [ $? != 0 ]; then
-    print "Qcheck requires radon to work." $WARNING
-    print "Get radon at https://pypi.python.org/pypi/radon." $WARNING
-    print "Tip: pip install radon" $WARNING 
-    print "Aborting installation"
+if [ $? == 0 ]; then
+    print "\nQcheck requires radon to work.\n" $WARNING
+    print "Get radon at https://pypi.python.org/pypi/radon.\n" 
+    print "* Tip: pip install radon\n" $IMPORTANT
+    print "\nDon't have pip either?\n" 
+    print "* Tip: apt-get install python-pip\n" $IMPORTANT
+    print "\nAborting installation\n"
     exit 1
 fi
 
