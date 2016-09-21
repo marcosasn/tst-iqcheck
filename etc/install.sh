@@ -104,10 +104,12 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
-# require pip or abort
-PIP=$(command -v pip)
+# require radon or abort
+RADON=$(command -v radon)
 if [ $? != 0 ]; then
-    print "The installation script requires the python-pip command" $WARNING
+    print "Qcheck requires radon to work." $WARNING
+    print "Get radon at https://pypi.python.org/pypi/radon." $WARNING
+    print "Tip: pip install radon" $WARNING 
     print "Aborting installation"
     exit 1
 fi
@@ -199,14 +201,6 @@ if [ $? != 0 ]; then
 fi
 mv cc.py $TST_DIR/bin/
 chmod +x $TST_DIR/bin/cc.py
-
-# Radon
-pip install radon
-if [ $? != 0 ]; then
-    print "Couldn't install radon dependency\n" $WARNING
-    print "Installation aborted\n"
-    exit 1
-fi
 
 mkdir -p $TST_DIR/qcheck
 mv elianearaujo-tst-qcheck*/LICENSE $TST_DIR/qcheck/
