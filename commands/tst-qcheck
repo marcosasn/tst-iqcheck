@@ -194,6 +194,7 @@ def read_qcheckjson(exit=False, quit_on_fail=False):
     try:
         with codecs.open(QCHECKFILE, mode='r', encoding='utf-8') as f:
             qcheckjson = json.loads(tstlib.to_unicode(f.read()))
+        f.close()
 
     except ValueError:
         msg = "qcheck: %s is corrupted" % QCHECKFILE
@@ -201,6 +202,7 @@ def read_qcheckjson(exit=False, quit_on_fail=False):
             print msg
             sys.exit(1)
         raise CorruptedConfigFile(msg)
+    
     return qcheckjson
 
 def get_filestocheck(pattern):
