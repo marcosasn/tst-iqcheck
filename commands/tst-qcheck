@@ -13,6 +13,7 @@
 import os
 import sys
 import json
+import codecs
 import glob
 import argparse
 
@@ -29,16 +30,17 @@ NOREFERENCE = "There are no reference values."
 # Output Settings
 COLNUMBERWIDTH = 5
 COLTEXTWIDTH = 25
+QCHECKFILE = "qcheck.json"
 
-def get_ref_metrics(): 
-    tstjson = tstlib.read_tstjson(exit=True)
-    if tstjson.get("quality"):
-        return tstjson.get("quality")[0]
+def get_refmetrics(): 
+    qcheckjson = read_qcheckjson(exit=True)
+    if qcheckjson.get("quality"):
+        return qcheckjson.get("quality")[0]
     else:
         return {}
     
 def get_quality_metrics( raw_metrics ): 
-    ref_metrics = get_ref_metrics()
+    ref_metrics = get_refmetrics()
     metrics = {}
     
     # Ratio metrics
@@ -159,7 +161,7 @@ def pack_readablemetrics(results):
 def pack_profresults(results):
     
     line = ""
-    ref_metrics = pack_readablemetrics(get_ref_metrics())
+    ref_metrics = pack_readablemetrics(get_refmetrics())
     if ref_metrics:
         line += '{0:{width}.{width}} {1}\n'.format("REFERENCE", ref_metrics, width = COLTEXTWIDTH)
     else:
@@ -172,6 +174,34 @@ def pack_profresults(results):
 
 def pack_results(results):    
     return tstlib.data2json(results)
+
+def write_results(results, QCHECKFILE):
+    content = { "quality" : [results] }
+    with open(QCHECKFILE, 'w') as fp:
+        json.dump(content, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
+    
+    fp.close()
+
+def read_qcheckjson(exit=False, quit_on_fail=False):
+#Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
+    
+    if not os.path.exists(QCHECKFILE):
+        if quit_on_fail:
+            msg = "qcheck: file not found"
+            print msg
+            sys.exit(1)
+        return {}
+    try:
+        with codecs.open(QCHECKFILE, mode='r', encoding='utf-8') as f:
+            qcheckjson = json.loads(tstlib.to_unicode(f.read()))
+
+    except ValueError:
+        msg = "qcheck: %s is corrupted" % QCHECKFILE
+        if exit or quit_on_fail:
+            print msg
+            sys.exit(1)
+        raise CorruptedConfigFile(msg)
+    return qcheckjson
 
 def get_filestocheck(pattern):
      #Code borrowed from tst_test.py (c) 2011-2014 Dalton Serey, UFCG
@@ -202,15 +232,18 @@ def parse_arguments():
     parser.add_argument("-m", "--metrics", nargs = 1, help="get values of cc, header, lloc, pep8, vhalstead")
     parser.add_argument("-f", "-fb", "--feedback", nargs = 1, help="present warning messages referring to static quality metrics")
     parser.add_argument("-p","-prof", "--prof", nargs = "*", help="get values of cc, header, lloc, pep8, vhalstead referring to a given pattern or file(s)")
+    parser.add_argument("-s","--set", nargs = 1, help="set reference solution")
     parser.add_argument("-o", "--outputformat", type=str, default="human", choices=["human","json"], help="set output format")
     
     parser.add_argument("filename", nargs="*", default = [""])
     
     args = parser.parse_args()
-    
     if args.metrics:
         filenames = args.metrics[0]
         function = "metrics"
+    elif args.set:
+        filenames = args.set[0]
+        function = "set"
     elif args.feedback:
         filenames = args.feedback[0]
         function = "feedback"
@@ -231,10 +264,16 @@ def main():
             # metrics output human-readable format
             results = get_rawmetrics(filenames)
             report = pack_results(results) if outputformat == 'json' else pack_readablemetrics(results)
-            
+
+        elif function in ('set'): 
+            # set reference solution file
+            results = get_rawmetrics(filenames)
+            write_results(results, QCHECKFILE)
+            report = QCHECKFILE + " was created."
+
         elif function in ('feedback'): 
             # feedback output human-readable format
-            if not get_ref_metrics():
+            if not get_refmetrics():
                 report = NOREFERENCE
             else:
                 results = quality_report( get_metrics(filenames) )
