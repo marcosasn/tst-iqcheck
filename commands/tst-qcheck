@@ -32,6 +32,11 @@ COLNUMBERWIDTH = 5
 COLTEXTWIDTH = 25
 QCHECKFILE = "qcheck.json"
 
+LBLUE = '\033[1;34m'
+LGREEN = '\033[9;32m'
+LCYAN = '\033[1;36m'
+RESET = '\033[0m'
+
 def get_refmetrics(): 
     qcheckjson = read_qcheckjson(exit=True)
     if qcheckjson.get("quality"):
@@ -48,9 +53,7 @@ def get_quality_metrics( raw_metrics ):
         metrics["lloc"] = float(raw_metrics.get("lloc")) / float(ref_metrics.get("lloc"))
         metrics["vhalstead"] = float(raw_metrics.get("vhalstead")) / float(ref_metrics.get("vhalstead"))
         metrics["cc"] = float(raw_metrics.get("cc")) / float(ref_metrics.get("cc"))
-    #else:
-     #   metrics["lloc"], metrics["vhalstead"], metrics["cc"] = 1, 1, 1
-        
+    
     return metrics
 
 def check_header( lines ):
@@ -107,6 +110,47 @@ def get_rawmetrics(filename):
         "header": qchecklib.header_lines(filename)
     }  
     return results
+
+def pack_markdownfeedback(filename, results):
+    codeline = "### Code\n"
+    styleline = "### Style\n"
+    codewarnings, stylewarnings = 0, 0
+    
+    if not results:
+        return ""
+    
+    #Header
+    if results.get("header") and len(results.get("header")) > 1:
+        codeline+= "- %s\n" % results.get("header")[1]
+        codewarnings += 1
+    #RCC
+    if results.get("cc") and len(results.get("cc")) > 1:
+        codeline+= "- %s\n" % results.get("cc")[1]
+        codewarnings += 1
+    #LLOC
+    if results.get("lloc") and len(results.get("lloc")) > 1:
+        codeline+=  "- %s\n" % results.get("lloc")[1]
+        codewarnings += 1
+    #RVHALSTEAD
+    if results.get("vhalstead") and len(results.get("vhalstead")) > 1:
+        codeline+=  "- %s\n" % results.get("vhalstead")[1]
+        codewarnings += 1
+    #RPEP8
+    if results.get("pep8") and len(results.get("pep8")) > 1:
+        for i in range(1, len(results.get("pep8"))):
+            styleline+=  "- %s\n" % results.get("pep8")[i]
+            stylewarnings += 1
+    
+    if stylewarnings or codewarnings:
+        header = LBLUE + "# %s\n\n" % filename
+        report = LCYAN + "**%d Warning(s)** \n\n" % (stylewarnings + codewarnings)
+        messages = LGREEN + codeline if codewarnings else ""
+        messages += LGREEN + styleline if stylewarnings else ""
+        text = header + report + messages[:-1] + RESET
+    else:
+        text = ""
+    
+    return text
 
 def pack_readablefeedback(results):
     line = ""
@@ -279,7 +323,7 @@ def main():
                 report = NOREFERENCE
             else:
                 results = quality_report( get_metrics(filenames) )
-                report = pack_results(results) if outputformat == 'json' else pack_readablefeedback(results)
+                report = pack_results(results) if outputformat == 'json' else pack_markdownfeedback(filenames, results)
 
         elif function in ('prof'):
             setofcode = get_filestocheck(filenames)
@@ -291,17 +335,16 @@ def main():
                 results.append((code, get_rawmetrics(code)))
             report = pack_profresults(results)
             
-        print( report )
+        print report 
     
     except IOError:
-        print("Usage: tst_qcheck.py [options] code.py")
+        print("Usage: tst qcheck [options] code.py")
         sys.exit(1)
     
-
 if __name__ == "__main__":
     
     if len(sys.argv) < 2:
-        print("Usage: tst_qcheck.py [options] code.py")
+        print("Usage: tst qcheck [options] code.py")
         sys.exit()
      
     if len(sys.argv) > 1 and sys.argv[1] == '--one-line-help':
