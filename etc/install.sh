@@ -96,18 +96,25 @@ while (( $# > 0 )); do
     shift
 done
 
+# require tst or abort
+if [ ! -d "$HOME/.tst" ]; then
+  print "Qcheck requires tst\n" $WARNING
+  print "Aborting installation\n"
+  exit 1
+fi
+
 # require curl or abort
 CURL=$(command -v curl)
 if [ $? != 0 ]; then
     print "The installation script requires the curl command\n" $WARNING
-    print "Aborting installation"
+    print "Aborting installation\n"
     exit 1
 fi
 
 # require radon or abort
 RADON=$(command -v radon)
 if [ $? != 0 ]; then
-    print "\nQcheck requires radon to work.\n" $WARNING
+    print "\nQcheck requires radon\n" $WARNING
     print "Get radon at https://pypi.python.org/pypi/radon.\n" 
     print "* Tip: pip install radon\n" $IMPORTANT
     print "\nDon't have pip either?\n" 
@@ -119,8 +126,8 @@ fi
 # require unzip or abort
 UNZIP=$(command -v unzip)
 if [ $? != 0 ]; then
-    print "The installation script requires the unzip command" $WARNING
-    print "Aborting installation";
+    print "The installation script requires the unzip command\n" $WARNING
+    print "Aborting installation\n";
     exit 1
 fi
 
