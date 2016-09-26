@@ -33,7 +33,7 @@ optional arguments:
   -h, --help,        show this help message and exit
   -m METRICS,        get values of cc, header, lloc, pep8, vhalstead
   -f FEEDBACK,       present warning messages referring to static quality metrics
-  -p PROF,           get valueUs of cc, header, lloc, pep8, vhalstead referring to a given pattern or file(s)
+  -p PROF,           get values of cc, header, lloc, pep8, vhalstead referring to a given pattern or file(s)
   -s SET,            set reference code
   -o {human,json},   set output format
 ```
@@ -46,6 +46,7 @@ Warning messages about code quality are based on well-known quality software met
 
 ### Example
 ```
+$ tst qcheck code.py
 # code.py
 
 **2 Warning(s)** 
