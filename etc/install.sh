@@ -183,6 +183,8 @@ rm qcheck.zip
 mv elianearaujo-tst-qcheck*/bin/* $TST_DIR/bin/
 mv elianearaujo-tst-qcheck*/commands/* $TST_DIR/commands/
 
+chmod +x $TST_DIR/commands/tst-qcheck
+
 # download third party dependencies
 # pycodestyle
 curl -q $PYCODESTYLE_URL --output pycodestyle.py 2> /dev/null
