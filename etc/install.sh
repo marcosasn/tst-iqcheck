@@ -115,11 +115,11 @@ fi
 RADON=$(command -v radon)
 if [ $? != 0 ]; then
     print "\nQcheck requires radon\n" $WARNING
-    print "Get radon at https://pypi.python.org/pypi/radon.\n" 
-    print "* Tip: pip install radon\n" $IMPORTANT
-    print "\nDon't have pip either?\n" 
-    print "* Tip: apt-get install python-pip\n" $IMPORTANT
-    print "\nAborting installation\n"
+    print "Get radon and install it as superuser. Check: https://pypi.python.org/pypi/radon.\n" $NORMAL
+    print "* Tip: sudo pip install radon\n" $IMPORTANT
+    print "\nDon't have pip either?\n" $NORMAL
+    print "* Tip: sudo apt-get install python-pip\n" $IMPORTANT
+    print "\nAborting installation\n" $NORMAL
     exit 1
 fi
 
