@@ -213,24 +213,30 @@ fi
 mv cc.py $TST_DIR/bin/
 chmod +x $TST_DIR/bin/cc.py
 
+# Move files to qcheck dir
 mkdir -p $TST_DIR/qcheck
 mv elianearaujo-tst-qcheck*/LICENSE $TST_DIR/qcheck/
 mv elianearaujo-tst-qcheck*/README.md $TST_DIR/qcheck/
+mv elianearaujo-tst-qcheck*/etc/* $TST_DIR/qcheck/
+
 
 # end installation
 cd $TST_DIR
 rm -rf $INSTALL_DIR
 print "Installation finished\n" $IMPORTANT
 
-# configure environment variable TST_CUSTOM_COMMANDS
-print "\nConfigure environment? (y/n) " $QUESTION
-get_yes_or_no
-if [[ "$answer" == "y" ]]; then
-    echo "export TST_CUSTOM_COMMANDS='qcheck'" >> $BASHRC
-    print "Finished environment configuration\n" $IMPORTANT
-    print "\nTo make configuration take effect immediately, type the command:\n"
-    print "*$IMPORTANT source ~/.bashrc$NORMAL\n"
-else
-    print "Environment was$WARNING not$NORMAL configured.\n"
-    print "Remember to add $IMPORTANT$TST_DIR/bin$NORMAL to PATH and PYTHONPATH\n"
-fi
+# configure environment TST_CUSTOM_COMMANDS in config.json
+python $TST_DIR/qcheck/set_config.py
+
+
+#print "\nConfigure environment? (y/n) " $QUESTION
+#get_yes_or_no
+#if [[ "$answer" == "y" ]]; then
+#    echo "export TST_CUSTOM_COMMANDS='qcheck'" >> $BASHRC
+##    print "Finished environment configuration\n" $IMPORTANT
+ #   print "\nTo make configuration take effect immediately, type the command:\n"
+ #   print "*$IMPORTANT source ~/.bashrc$NORMAL\n"
+#else
+ #   print "Environment was$WARNING not$NORMAL configured.\n"
+ #   print "Remember to add $IMPORTANT$TST_DIR/bin$NORMAL to PATH and PYTHONPATH\n"
+#fi
