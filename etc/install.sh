@@ -70,10 +70,6 @@ function print {
 
 
 # MAIN
-if [[ "$EUID" == "0" ]]; then
-   print "This script cannot be run as root\n" $IMPORTANT
-   exit 1
-fi
 
 print "Installing qcheck scripts\n" $WARNING
 
@@ -88,6 +84,12 @@ while (( $# > 0 )); do
             TST_DIR=$2
             shift
             ;;
+        --root)
+            INSTALL_DIR=~aluno/.tst/qcheck.install
+            TST_DIR=~aluno/.tst
+            CONFIG_FILE=~aluno/.tst/config.json
+            root="true"
+            ;;
         --*)
             print "invalid option $1\n" $WARNING
             exit 1
@@ -96,8 +98,14 @@ while (( $# > 0 )); do
     shift
 done
 
+# shoud run as root?
+if [[ "$EUID" == "0" ]] && [[ "$root" != "true" ]]; then
+   print "This script cannot be run as root\n" $WARNING
+   exit 1
+fi
+
 # require tst or abort
-if [ ! -d "$HOME/.tst" ]; then
+if [ ! -d "$TST_DIR" ]; then
   print "Qcheck requires tst\n" $WARNING
   print "Aborting installation\n"
   exit 1
