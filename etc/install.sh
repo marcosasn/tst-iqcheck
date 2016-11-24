@@ -85,9 +85,9 @@ while (( $# > 0 )); do
             shift
             ;;
         --root)
-            INSTALL_DIR=~aluno/.tst/qcheck.install
-            TST_DIR=~aluno/.tst
-            CONFIG_FILE=~aluno/.tst/config.json
+            #INSTALL_DIR=~aluno/.tst/qcheck.install
+            #TST_DIR=~aluno/.tst
+            #CONFIG_FILE=~aluno/.tst/config.json
             root="true"
             ;;
         --*)
@@ -236,15 +236,3 @@ print "Installation finished\n" $IMPORTANT
 # configure environment TST_CUSTOM_COMMANDS in config.json
 python $TST_DIR/qcheck/set_config.py
 
-
-#print "\nConfigure environment? (y/n) " $QUESTION
-#get_yes_or_no
-#if [[ "$answer" == "y" ]]; then
-#    echo "export TST_CUSTOM_COMMANDS='qcheck'" >> $BASHRC
-##    print "Finished environment configuration\n" $IMPORTANT
- #   print "\nTo make configuration take effect immediately, type the command:\n"
- #   print "*$IMPORTANT source ~/.bashrc$NORMAL\n"
-#else
- #   print "Environment was$WARNING not$NORMAL configured.\n"
- #   print "Remember to add $IMPORTANT$TST_DIR/bin$NORMAL to PATH and PYTHONPATH\n"
-#fi
