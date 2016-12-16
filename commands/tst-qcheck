@@ -26,6 +26,7 @@ HIGHLLOC = "Your program has too many lines of code."
 HIGHCC = "Your program has too many decision points."
 HIGHVHALSTEAD = "Your program has too many operations (Example: +,-,==, etc)."
 NOREFERENCE = "There are no reference values."
+NOWARNINGS = "No warnings. Congratulations!"
 
 # Output Settings
 COLNUMBERWIDTH = 5
@@ -36,7 +37,7 @@ LBLUE = '\033[1;34m'
 LGREEN = '\033[1;32m'
 LCYAN = '\033[1;36m'
 RESET = '\033[0m'
-
+    
 def get_refmetrics(): 
     qcheckjson = read_qcheckjson(exit=True)
     if qcheckjson.get("quality"):
@@ -148,7 +149,7 @@ def pack_markdownfeedback(filename, results):
         messages += styleline if stylewarnings else ""
         text = header + report + messages[:-1]
     else:
-        text = ""
+        text = LCYAN + "** %s **" % NOWARNINGS + RESET
     
     return text
 
@@ -326,7 +327,7 @@ def main():
                 report = pack_results(results) if outputformat == 'json' else pack_markdownfeedback(filenames, results)
 
         elif function in ('prof'):
-            setofcode = get_filestocheck(filenames)
+            setofcode = sorted(get_filestocheck(filenames))
             if not setofcode:
                 print( "qcheck: nothing to check in '%s'" % filenames[0] )
                 sys.exit()
