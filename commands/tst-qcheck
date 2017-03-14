@@ -7,7 +7,7 @@
 #  vhalstead: Halstead volume
 #  pep8: Adherence to Python coding standards (PEP8)
 #
-# Eliane Araujo, 2016
+# Eliane Araujo, 2016-2017
 #
 
 import os
@@ -48,14 +48,34 @@ def get_refmetrics():
 def get_quality_metrics( raw_metrics ): 
     ref_metrics = get_refmetrics()
     metrics = {}
-    
     # Ratio metrics
     if ref_metrics:
         metrics["lloc"] = float(raw_metrics.get("lloc")) / float(ref_metrics.get("lloc"))
-        metrics["vhalstead"] = float(raw_metrics.get("vhalstead")) / float(ref_metrics.get("vhalstead"))
-        metrics["cc"] = float(raw_metrics.get("cc")) / float(ref_metrics.get("cc"))
+        # If metric value == 0?
+        if int(ref_metrics.get("vhalstead")) != 0:
+            metrics["vhalstead"] = float(raw_metrics.get("vhalstead")) / float(ref_metrics.get("vhalstead"))
+        elif int(raw_metrics.get("vhalstead")) == 0 and int(ref_metrics.get("vhalstead")) == 0:
+            # In this case, users metric and ref_metrics are 0, 
+            # Manually set value to 0
+            metrics["vhalstead"] = 0.0
+        else:
+            # In this case, users metric value is greater than 0, must provide fb.
+            # Manually set value above threshold
+            metrics["vhalstead"] = 1.3
+        
+        if int(ref_metrics.get("cc")) != 0:
+            metrics["cc"] = float(raw_metrics.get("cc")) / float(ref_metrics.get("cc"))
+        elif int(raw_metrics.get("vhalstead")) == 0 and int(ref_metrics.get("vhalstead")) == 0:
+            # In this case, users metric and ref_metrics are 0, 
+            # Manually set value to 0
+            metrics["cc"] = 0.0
+        else:
+            # In this case, users metric value is greater than 0, must provide fb.
+            # Manually set value above threshold
+            metrics["cc"] = 1.3
     
     return metrics
+
 
 def check_header( lines ):
     #Ad hoc number of lines to assess header quality
