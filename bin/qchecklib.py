@@ -87,12 +87,21 @@ def cc(filename):
     code = program.read()
     try:
         # Use radon
-        cc = cc_visit(code)[0].complexity
-
+        visitor = cc_visit(code)
+        if len(visitor) <= 0:
+            # Doesn't have functions or classes. 
+            # Use cc.py
+            stats = measure_complexity(code)
+            cc = stats.complexity
+        else:
+            cc = 0
+            for i in range( len(visitor) ):
+                cc += visitor[i].complexity
+        
     except Exception as e:
-        # Use cc.py
-        stats = measure_complexity(code)
-        cc = stats.complexity
+        # Failed
+        print("qcheck: unable to get cc")
+        cc = 0
     program.close()
     return cc
 
