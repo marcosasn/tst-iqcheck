@@ -349,7 +349,7 @@ def main():
         elif function in ('prof'):
             setofcode = sorted(get_filestocheck(filenames))
             if not setofcode:
-                print( "qcheck: nothing to check in '%s'" % filenames[0] )
+                print( "qcheck: nothing to check.")
                 sys.exit()
             results = []
             for code in setofcode:
