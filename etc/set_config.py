@@ -18,6 +18,7 @@ def add_command_qcheck():
     
 def main():
     add_command_qcheck()
+    print("qcheck: tst qcheck set") 
     return
 
 if __name__ == "__main__":
