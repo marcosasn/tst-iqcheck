@@ -227,12 +227,23 @@ mv elianearaujo-tst-qcheck*/LICENSE $TST_DIR/qcheck/
 mv elianearaujo-tst-qcheck*/README.md $TST_DIR/qcheck/
 mv elianearaujo-tst-qcheck*/etc/* $TST_DIR/qcheck/
 
+# configure environment
+python $TST_DIR/qcheck/set_config.py
+print "Finished environment configuration\n" $IMPORTANT
+
+# Report activity
+print "\nReport activities for research purpose? (y/n) " $QUESTION
+get_yes_or_no
+if [[ "$answer" == "n" ]] && [[ "$root" != "true" ]]; then
+    # Dont report activities
+    mv $TST_DIR/bin/qchecklibs.py $TST_DIR/bin/qchecklib.py
+else
+    # Report activities
+    rm $TST_DIR/bin/qchecklibl.py
+fi
+
 
 # end installation
 cd $TST_DIR
 rm -rf $INSTALL_DIR
 print "Installation finished\n" $IMPORTANT
-
-# configure environment TST_CUSTOM_COMMANDS in config.json
-python $TST_DIR/qcheck/set_config.py
-
