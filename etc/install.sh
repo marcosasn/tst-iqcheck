@@ -232,16 +232,20 @@ python $TST_DIR/qcheck/set_config.py
 print "Finished environment configuration\n" $IMPORTANT
 
 # Report activity
-print "\nReport activities for research purpose? (y/n) " $QUESTION
-get_yes_or_no
-if [[ "$answer" == "n" ]] && [[ "$root" != "true" ]]; then
-    # Dont report activities
-    mv $TST_DIR/bin/qchecklibs.py $TST_DIR/bin/qchecklib.py
+if [[ "$root" != "true" ]]; then
+    print "\nReport activities for research purpose? (y/n) " $QUESTION
+    get_yes_or_no
+    if [[ "$answer" == "n" ]]; then
+        # Dont report activities
+        mv $TST_DIR/bin/qchecklibs.py $TST_DIR/bin/qchecklib.py
+    else
+        # Report activities
+        rm $TST_DIR/bin/qchecklibs.py
+    fi
 else
     # Report activities
     rm $TST_DIR/bin/qchecklibs.py
 fi
-
 
 # end installation
 cd $TST_DIR
