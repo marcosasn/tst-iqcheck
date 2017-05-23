@@ -5,7 +5,7 @@
 import os
 import sys
 import commands
-
+import json
 
 try:
     from cc import measure_complexity
@@ -21,6 +21,13 @@ try:
 except ImportError:
     print("tst quality checker needs radon to work.")
     sys.exit(1)
+
+try:
+   import urllib.request as urlrequest
+except ImportError:
+   import urllib as urlrequest
+
+url = 'http://qchecklog.appspot.com/api/action/'
 
 def four_metrics(program_name):    
     return "%s %s %s %s" % ( lloc(program_name), cc(program_name), vhalstead(program_name), pep8(program_name)["count"])
@@ -114,6 +121,11 @@ def lloc(filename):
     
 def raw_metrics(code):
     return analyze(code)
+
+def save(message):
+    type_ = 'accept'
+    urlrequest.urlopen(url + type_, data=message)
+    
     
 if __name__ == '__main__':
   print("qchecklib is a helper module for tst_qcheck commands")
