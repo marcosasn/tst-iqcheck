@@ -239,7 +239,7 @@ if [[ "$answer" == "n" ]] && [[ "$root" != "true" ]]; then
     mv $TST_DIR/bin/qchecklibs.py $TST_DIR/bin/qchecklib.py
 else
     # Report activities
-    rm $TST_DIR/bin/qchecklibl.py
+    rm $TST_DIR/bin/qchecklibs.py
 fi
 
 
