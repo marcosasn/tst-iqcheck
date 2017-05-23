@@ -32,6 +32,9 @@ NOWARNINGS = "No warnings. Congratulations!"
 COLNUMBERWIDTH = 5
 COLTEXTWIDTH = 25
 QCHECKFILE = "qcheck.json"
+TSTFILE = ".tst/tst.json"
+TSTDIR = os.path.expanduser("~/.tst/")
+TSTCONFIG = os.path.expanduser(TSTDIR + "config.json")
 
 LBLUE = '\033[1;34m'
 LGREEN = '\033[1;32m'
@@ -131,6 +134,39 @@ def get_rawmetrics(filename):
         "header": qchecklib.header_lines(filename)
     }  
     return results
+
+def get_username():
+    configjson = read_tstconfig(exit=True)
+    if configjson.get("user"):
+        return configjson.get("user")
+    else:
+        return ''
+
+def get_activityid():
+    tstjson = read_tstjson(exit=True)
+    if tstjson.get("iid"):
+        return tstjson.get("iid")
+    else:
+        return '0'
+    
+def get_logdata(filenames, output):
+    content = { "filename": filenames, "report": output }
+    content["iid"] = get_activityid()
+    content["user"] = get_username()
+    return tstlib.data2json(content)
+    
+def pack_logfeedback(results):
+    style, code = 0, 0
+    codemetrics = ["cc", "header", "lloc", "vhalstead"]
+    for metric, message in results.items():
+        if len(message) > 1:
+            if metric in codemetrics:
+                code += 1
+            else:
+                style += message[0]    
+    report = { "stylewarning": style, "codewarning": code,  "feedback": results }
+    
+    return report
 
 def pack_markdownfeedback(filename, results):
     codeline = "### Code\n"
@@ -246,6 +282,50 @@ def write_results(results, QCHECKFILE):
         json.dump(content, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
     
     fp.close()
+    
+def read_tstconfig(exit=False, quit_on_fail=False):
+#Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
+    if not os.path.exists(TSTCONFIG):
+        if quit_on_fail:
+            msg = "qcheck: config.json file not found"
+            print msg
+            #sys.exit(1)
+        return {}
+    try:
+        with codecs.open(TSTCONFIG, mode='r', encoding='utf-8') as f:
+            configjson = json.loads(tstlib.to_unicode(f.read()))
+    except ValueError:
+        msg = "qcheck: %s is corrupted" % TSTCONFIG
+        if exit_on_fail:
+            print msg
+            #sys.exit()
+        raise CorruptedFile(msg)
+        
+
+    return configjson
+
+
+def read_tstjson(exit=False, quit_on_fail=False):
+#Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
+    if not os.path.exists(TSTFILE):
+        if quit_on_fail:
+            msg = "qcheck: tst.json file not found"
+            print msg
+            #sys.exit(1)
+        return {}
+    try:
+        with codecs.open(TSTFILE, mode='r', encoding='utf-8') as f:
+            tstjson = json.loads(tstlib.to_unicode(f.read()))
+        f.close()
+
+    except ValueError:
+        msg = "qcheck: %s is corrupted" % TSTFILE
+        if exit or quit_on_fail:
+            print msg
+            #sys.exit(1)
+        raise CorruptedConfigFile(msg)
+    
+    return tstjson
 
 def read_qcheckjson(exit=False, quit_on_fail=False):
 #Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
@@ -326,12 +406,13 @@ def parse_arguments():
 def main():
     
     filenames, function, outputformat = parse_arguments()
+    logit = ""
     try:
         if function in ('metrics') :
             # metrics output human-readable format
             results = get_rawmetrics(filenames)
             report = pack_results(results) if outputformat == 'json' else pack_readablemetrics(results)
-
+            
         elif function in ('set'): 
             # set reference solution file
             results = get_rawmetrics(filenames)
@@ -345,7 +426,8 @@ def main():
             else:
                 results = quality_report( get_metrics(filenames) )
                 report = pack_results(results) if outputformat == 'json' else pack_markdownfeedback(filenames, results)
-
+                logit = get_logdata(filenames, pack_logfeedback(results))
+                
         elif function in ('prof'):
             setofcode = sorted(get_filestocheck(filenames))
             if not setofcode:
@@ -356,8 +438,11 @@ def main():
                 results.append((code, get_rawmetrics(code)))
             report = pack_profresults(results)
             
-        print report 
-    
+        print report
+        ### Is log active?
+        if logit:
+            qchecklib.save(logit)
+            
     except IOError:
         print("Usage: tst qcheck [options] code.py")
         sys.exit(1)
