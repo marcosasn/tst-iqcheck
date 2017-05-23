@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 # 
-#  TST-Online command line quality checker. Based on code metrics used to evaluate software maintainability.
-#  lloc: Logical Lines of code
-#  cc: McCabe cyclomatic complexity
-#  vhalstead: Halstead volume
-#  pep8: Adherence to Python coding standards (PEP8)
+# TST-Online command line quality checker. Based on code metrics used to evaluate software maintainability.
+# lloc: Logical Lines of code
+# cc: McCabe cyclomatic complexity
+# vhalstead: Halstead volume
+# pep8: Adherence to Python coding standards (PEP8)
 #
 # Eliane Araujo, 2016-2017
 #
