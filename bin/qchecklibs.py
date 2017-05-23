@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # Aid tools to quality checker.
+# Qchecklib silent
 # Eliane Araujo, 2016
 
 import os
