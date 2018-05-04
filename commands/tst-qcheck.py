@@ -19,6 +19,10 @@ import argparse
 
 import tstlib
 import qchecklib
+from fileinput import filename
+
+import nltk
+from nltk import wordpunct_tokenize
 
 # Feedback Messages
 SHORTHEADER = "Your program header is too short."
@@ -134,6 +138,23 @@ def get_rawmetrics(filename):
         "header": qchecklib.header_lines(filename)
     }  
     return results
+
+import io
+def vocabulary(filename):
+    with io.open(filename, encoding='utf-8') as f:
+        tst_json = json.load(f)
+    problem = tst_json["files"]["linger.yaml"]["data"]
+    problem = problem.replace('\n', '')
+    return tokenize_text(problem)
+
+def tokenize_text(text):
+    tokens = nltk.word_tokenize(text)
+    words = [word.lower() for word in tokens]
+    return words
+
+import json
+def get_vocabulary(filenames):
+    return vocabulary(filenames)
 
 def get_username():
     configjson = read_tstconfig(exit=True)
@@ -380,6 +401,8 @@ def parse_arguments():
     parser.add_argument("-f", "-fb", "--feedback", nargs = 1, help="present warning messages referring to static quality metrics")
     parser.add_argument("-p","-prof", "--prof", nargs = "*", help="get values of cc, header, lloc, pep8, vhalstead referring to a given pattern or file(s)")
     parser.add_argument("-s","--set", nargs = 1, help="set reference solution")
+    #mudei aqui
+    parser.add_argument("-sps","--problemspec", nargs = 1, help="set problem specification")
     parser.add_argument("-o", "--outputformat", type=str, default="human", choices=["human","json"], help="set output format")
     
     parser.add_argument("filename", nargs="*", default = [""])
@@ -391,6 +414,10 @@ def parse_arguments():
     elif args.set:
         filenames = args.set[0]
         function = "set"
+    # mudei aqui
+    elif args.problemspec:
+        filenames = args.problemspec[0]
+        function = "problemspec"
     elif args.feedback:
         filenames = args.feedback[0]
         function = "feedback"
@@ -417,6 +444,12 @@ def main():
             # set reference solution file
             results = get_rawmetrics(filenames)
             write_results(results, QCHECKFILE)
+            report = QCHECKFILE + " was created."
+        
+        elif function in ('problemspec'):
+            report = "problem specification was setted."
+            vocabulary = get_vocabulary(filenames)
+            #write_results(vocabulary, QCHECKFILE)
             report = QCHECKFILE + " was created."
 
         elif function in ('feedback'): 

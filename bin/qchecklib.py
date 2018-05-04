@@ -119,7 +119,7 @@ def lloc(filename):
     lines = raw_metrics(code)[1]
     program.close()
     return lines
-    
+
 def raw_metrics(code):
     return analyze(code)
 

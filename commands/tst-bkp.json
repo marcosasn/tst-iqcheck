@@ -1,0 +1,51 @@
+{
+  "files": [],
+  "tests": [
+    {
+      "category": "public",
+      "input": "1.5\n-2\n",
+      "output": "Quarto quadrante.\n"
+    },
+    {
+      "category": "public",
+      "input": "3\n0\n",
+      "output": "Sobre eixo.\n"
+    },
+    {
+      "category": "public",
+      "input": "0\n0\n",
+      "output": "Centro.\n"
+    },
+    {
+      "input": "2\n90\n",
+      "output": "Primeiro quadrante.\n"
+    },
+    {
+      "input": "-1\n1\n",
+      "output": "Segundo quadrante.\n"
+    },
+    {
+      "input": "-3\n-2\n",
+      "output": "Terceiro quadrante.\n"
+    },
+    {
+      "input": "0\n3.9\n",
+      "output": "Sobre eixo.\n"
+    },
+    {
+      "input": "0\n-3.9\n",
+      "output": "Sobre eixo.\n"
+    }
+  ],
+  "quality": [
+    {
+      "cc": 11,
+      "pep8": 0,
+      "lloc": 14,
+      "vhalstead": 183.94,
+      "header": 4
+    }
+   ],
+  "dirname": "cartesiano-v0",
+  "name": "cartesiano"
+}
