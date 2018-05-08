@@ -22,8 +22,10 @@ import tstlib
 
 import nltk
 import io
+import ast
 from nltk.corpus import stopwords
 from nltk import wordpunct_tokenize
+from nltk.stem.lancaster import LancasterStemmer
 
 from fileinput import filename
 
@@ -57,14 +59,14 @@ LBLUE = '\033[1;34m'
 LGREEN = '\033[1;32m'
 LCYAN = '\033[1;36m'
 RESET = '\033[0m'
-    
+
 def get_refmetrics(): 
     qcheckjson = read_qcheckjson(exit=True)
     if qcheckjson.get("quality"):
         return qcheckjson.get("quality")[0]
     else:
         return {}
-    
+
 def get_quality_metrics( raw_metrics ): 
     ref_metrics = get_refmetrics()
     metrics = {}
@@ -135,11 +137,34 @@ def quality_report( raw_metrics ):
     
     return report
 
+def get_problem_vocabulary(): 
+    qcheckjson = read_qcheckjson(exit=True)
+    if qcheckjson.get("problem_vocabulary"):
+        return qcheckjson.get("problem_vocabulary")[0]
+    else:
+        return {}
+
 def icheck(filename):
     #Code from ichecklib
     #identifiers from spec
+    if get_problem_vocabulary():
+        problem_vocabulary = get_problem_vocabulary()
+
+    #identifiers from student
+    student_identifiers = get_identifiers(filename)
+    
     #contrast terms from spec and terms from student code
-    return ["l", "x", "o"]
+    
+    return identifiers_student
+
+def get_identifiers(filename):
+    #Code from ichecklib
+    program = ast.parse(open(filename).read())  
+    names = []
+    for node in ast.walk(program):
+        if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Load):
+            names.append(node.id)
+    return list(set(names))
 
 def get_metrics(filename):
     results = {
@@ -184,10 +209,10 @@ def get_logdata(filenames, output):
     
 def pack_logfeedback(results):
     style, code = 0, 0
-    codemetrics = ["cc", "header", "lloc", "vhalstead", "icheck"]
-    for metric, message in results.items():
+    code_feedbacks = ["cc", "header", "lloc", "vhalstead", "icheck"]
+    for feedback, message in results.items():
         if len(message) > 1:
-            if metric in codemetrics:
+            if feedback in code_feedbacks:
                 code += 1
             else:
                 style += message[0]    
@@ -226,7 +251,6 @@ def pack_markdownfeedback(filename, results):
             stylewarnings += 1
     #ICHECK
     if results.get("icheck") and len(results.get("icheck")) > 1:
-        print "icheck feedback"
         for i in range(0, len(results.get("icheck"))):
             codeline +=  '- {} {}\n'.format(results.get("icheck")[i], NOPROBLEMIDENTIFIER) 
             codewarnings += 1
@@ -288,7 +312,6 @@ def pack_readablemetrics(results):
     if results.get("vhalstead") is not None:
         line += '{0:>{width}.{precision}f}'.format(results.get("vhalstead"), \
                                                    width = COLNUMBERWIDTH + 3, precision = 2)
-    
     return line
 
 def pack_profresults(results):
@@ -308,29 +331,42 @@ def pack_results(results):
     return tstlib.data2json(results)
 
 def write_results(results, QCHECKFILE):
-    content = { "quality" : [results] }
-    with open(QCHECKFILE, 'w') as fp:
-        json.dump(content, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
-    fp.close()
-    #if not get_refmetrics():
-        #content = { "quality" : [results] }
-    #    with open(QCHECKFILE, 'w') as fp:
-    #        json.dump(content, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
-    #    fp.close()
-    #else:
-    #    data = get_refmetrics()
-    #    data.update()
+    if not get_refmetrics():
+        #need save
+        qcheckjson = read_qcheckjson(exit=True)
+        qcheckjson["quality"] = [results]
         
+        with open(QCHECKFILE, 'w') as fp:
+            json.dump(qcheckjson, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
+        fp.close()
+    else:
+        #update
+        with open(QCHECKFILE, mode='r') as jf:
+            data = json.load(jf)
+
+        data["quality"] = [results]
+
+        with codecs.open(QCHECKFILE, mode='w') as fp:
+            json.dump(data, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
     
-def write_identifiers(results, QCHECKFILE):
-    content = { "identifiers" : results }
-    with codecs.open(QCHECKFILE, mode='a', encoding='utf-8') as fp:
-        json.dump(content, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
-    
-    fp.close()
+def write_problem_vocabulary(results, QCHECKFILE):
+    if not get_problem_vocabulary():
+        qcheckjson = read_qcheckjson(exit=True)
+        qcheckjson["problem_vocabulary"] = results
+        
+        with codecs.open(QCHECKFILE, mode='w', encoding='utf-8') as fp:
+            json.dump(qcheckjson, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
+    else:
+        with codecs.open(QCHECKFILE, mode='r', encoding='utf-8') as jf:
+            data = json.load(jf)
+
+        data["problem_vocabulary"] = results
+
+        with codecs.open(QCHECKFILE, mode='w', encoding='utf-8') as fp:
+            json.dump(data, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
     
 def read_tstconfig(exit=False, quit_on_fail=False):
-#Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
+    #Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
     if not os.path.exists(TSTCONFIG):
         if quit_on_fail:
             msg = "qcheck: config.json file not found"
@@ -349,9 +385,8 @@ def read_tstconfig(exit=False, quit_on_fail=False):
         
     return configjson
 
-
 def read_tstjson(exit=False, quit_on_fail=False):
-#Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
+    #Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
     if not os.path.exists(TSTFILE):
         if quit_on_fail:
             msg = "qcheck: tst.json file not found"
@@ -456,11 +491,29 @@ def detect_language(text):
     most_rated_language = max(ratios, key=ratios.get)
     return most_rated_language
 
+def get_steams(taged_tokens):
+    stemmer = nltk.stem.RSLPStemmer()
+    is_not_noun = lambda pos: pos[:2] != 'NN'
+    is_noun = lambda pos: pos[:2] == 'NN'
+
+    steams = []
+    
+    for (word, pos) in taged_tokens:
+        if is_not_noun(pos):
+            steams.append(stemmer.stem(word))
+        elif is_noun(pos):
+            steams.append(word)
+    return steams
+
 def tokenize_text(text):
     #Code from ichecklib
-    tokens = nltk.word_tokenize(text)
-    words = [word.lower() for word in tokens]
-    return words
+    #Removing pontuaction and numbers
+    tokenizer = nltk.RegexpTokenizer(r'[a-zA-Z]\w+')
+    tokens = tokenizer.tokenize(text)
+    taged_tokens = nltk.pos_tag(tokens)
+    vocabulary = get_steams(taged_tokens)    
+    vocabulary = [word.lower() for word in vocabulary]
+    return set(vocabulary)
 
 def get_vocabulary(filenames):
     return vocabulary(filenames)
@@ -482,7 +535,6 @@ def parse_arguments():
     parser.add_argument("-s","--set",
                          nargs = 1,
                          help="set reference solution")
-    #mudei aqui
     parser.add_argument("-sps","--problemspec",
                          nargs = 1,
                          help="set problem specification")
@@ -500,7 +552,6 @@ def parse_arguments():
     elif args.set:
         filenames = args.set[0]
         function = "set"
-    # mudei aqui
     elif args.problemspec:
         filenames = args.problemspec[0]
         function = "problemspec"
@@ -535,7 +586,7 @@ def main():
             # set problem specification
             report = "problem specification was setted."
             vocabulary = get_vocabulary(filenames)
-            write_identifiers(vocabulary, QCHECKFILE)
+            write_problem_vocabulary(vocabulary, QCHECKFILE)
             report = QCHECKFILE + " was created."
 
         elif function in ('feedback'): 
