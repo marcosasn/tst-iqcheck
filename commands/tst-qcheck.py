@@ -17,12 +17,24 @@ import codecs
 import glob
 import argparse
 
-import tstlib
 import qchecklib
-from fileinput import filename
+import tstlib
 
 import nltk
+import io
+from nltk.corpus import stopwords
 from nltk import wordpunct_tokenize
+
+from fileinput import filename
+
+bin_path = os.path.abspath('bin/')
+
+sys.path.append(bin_path)
+try:
+    import qchecklib
+except ImportError:
+    print("erro ao importar")
+
 
 # Feedback Messages
 SHORTHEADER = "Your program header is too short."
@@ -30,6 +42,7 @@ HIGHLLOC = "Your program has too many lines of code."
 HIGHCC = "Your program has too many decision points."
 HIGHVHALSTEAD = "Your program has too many operations (Example: +,-,==, etc)."
 NOREFERENCE = "There are no reference values."
+NOPROBLEMIDENTIFIER = "does not reflects the problem specification."
 NOWARNINGS = "No warnings. Congratulations!"
 
 # Output Settings
@@ -79,8 +92,7 @@ def get_quality_metrics( raw_metrics ):
         else:
             # In this case, users metric value is greater than 0, must provide fb.
             # Manually set value above threshold
-            metrics["cc"] = 1.3
-    
+            metrics["cc"] = 1.3    
     return metrics
 
 
@@ -117,7 +129,17 @@ def quality_report( raw_metrics ):
     report["header"] = [raw_metrics.get("header")]    
     if not check_header(raw_metrics.get("header")):
         report["header"].append( SHORTHEADER )
+    #ICHECK
+    if raw_metrics.get("icheck"):
+        report["icheck"] = raw_metrics.get("icheck")
+    
     return report
+
+def icheck(filename):
+    #Code from ichecklib
+    #identifiers from spec
+    #contrast terms from spec and terms from student code
+    return ["l", "x", "o"]
 
 def get_metrics(filename):
     results = {
@@ -125,7 +147,8 @@ def get_metrics(filename):
         "cc": qchecklib.cc(filename),
         "vhalstead": qchecklib.vhalstead(filename),
         "pep8": qchecklib.pep8(filename),
-        "header": qchecklib.header_lines(filename)
+        "header": qchecklib.header_lines(filename),
+        "icheck": icheck(filename)
     }
     return results
 
@@ -138,23 +161,6 @@ def get_rawmetrics(filename):
         "header": qchecklib.header_lines(filename)
     }  
     return results
-
-import io
-def vocabulary(filename):
-    with io.open(filename, encoding='utf-8') as f:
-        tst_json = json.load(f)
-    problem = tst_json["files"]["linger.yaml"]["data"]
-    problem = problem.replace('\n', '')
-    return tokenize_text(problem)
-
-def tokenize_text(text):
-    tokens = nltk.word_tokenize(text)
-    words = [word.lower() for word in tokens]
-    return words
-
-import json
-def get_vocabulary(filenames):
-    return vocabulary(filenames)
 
 def get_username():
     configjson = read_tstconfig(exit=True)
@@ -178,7 +184,7 @@ def get_logdata(filenames, output):
     
 def pack_logfeedback(results):
     style, code = 0, 0
-    codemetrics = ["cc", "header", "lloc", "vhalstead"]
+    codemetrics = ["cc", "header", "lloc", "vhalstead", "icheck"]
     for metric, message in results.items():
         if len(message) > 1:
             if metric in codemetrics:
@@ -218,6 +224,12 @@ def pack_markdownfeedback(filename, results):
         for i in range(1, len(results.get("pep8"))):
             styleline+=  "- %s\n" % results.get("pep8")[i]
             stylewarnings += 1
+    #ICHECK
+    if results.get("icheck") and len(results.get("icheck")) > 1:
+        print "icheck feedback"
+        for i in range(0, len(results.get("icheck"))):
+            codeline +=  '- {} {}\n'.format(results.get("icheck")[i], NOPROBLEMIDENTIFIER) 
+            codewarnings += 1
     
     if stylewarnings or codewarnings:
         header = LBLUE + "# %s\n\n" % filename
@@ -257,7 +269,6 @@ def pack_readablefeedback(results):
     return line[:-1]
 
 def pack_readablemetrics(results):
-    
     line = ""
     if not results:
         return line
@@ -281,7 +292,6 @@ def pack_readablemetrics(results):
     return line
 
 def pack_profresults(results):
-    
     line = ""
     ref_metrics = pack_readablemetrics(get_refmetrics())
     if ref_metrics:
@@ -300,6 +310,21 @@ def pack_results(results):
 def write_results(results, QCHECKFILE):
     content = { "quality" : [results] }
     with open(QCHECKFILE, 'w') as fp:
+        json.dump(content, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
+    fp.close()
+    #if not get_refmetrics():
+        #content = { "quality" : [results] }
+    #    with open(QCHECKFILE, 'w') as fp:
+    #        json.dump(content, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
+    #    fp.close()
+    #else:
+    #    data = get_refmetrics()
+    #    data.update()
+        
+    
+def write_identifiers(results, QCHECKFILE):
+    content = { "identifiers" : results }
+    with codecs.open(QCHECKFILE, mode='a', encoding='utf-8') as fp:
         json.dump(content, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
     
     fp.close()
@@ -322,7 +347,6 @@ def read_tstconfig(exit=False, quit_on_fail=False):
             #sys.exit()
         raise CorruptedFile(msg)
         
-
     return configjson
 
 
@@ -349,8 +373,7 @@ def read_tstjson(exit=False, quit_on_fail=False):
     return tstjson
 
 def read_qcheckjson(exit=False, quit_on_fail=False):
-#Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
-    
+#Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG  
     if not os.path.exists(QCHECKFILE):
         if quit_on_fail:
             msg = "qcheck: file not found"
@@ -393,17 +416,80 @@ def get_filestocheck(pattern):
     
     return filenames
 
+def vocabulary(filename):
+    #Code from ichecklib
+    with io.open(filename, encoding='utf-8') as f:
+        tst_json = json.load(f)
+    problem = tst_json["files"]["linger.yaml"]["data"]
+    problem = problem.replace('\n', '')
+    language = detect_language(problem)
+    vocabulary = tokenize_text(problem)
+    return filter_stop_words(vocabulary, language)
+
+def filter_stop_words(vocabulary, language):
+    #Code from ichecklib
+    stopWords = set(stopwords.words(language))
+    vocabularyFiltered = []
+    for v in vocabulary:
+        if v not in stopWords:
+            vocabularyFiltered.append(v)
+    return(vocabularyFiltered)
+
+def _calculate_languages_ratios(text):
+    #Code from ichecklib
+    #Code borrowed. (c) 2013 Alejandro Nolla
+    languages_ratios = {}
+    words = tokenize_text(text)
+    
+    for language in stopwords.fileids():
+        stopwords_set = set(stopwords.words(language))
+        words_set = set(words)
+        common_elements = words_set.intersection(stopwords_set)
+        languages_ratios[language] = len(common_elements) # language "score"
+
+    return languages_ratios
+
+def detect_language(text):
+    #Code from ichecklib
+    #Code borrowed. (c) 2013 Alejandro Nolla
+    ratios = _calculate_languages_ratios(text)
+    most_rated_language = max(ratios, key=ratios.get)
+    return most_rated_language
+
+def tokenize_text(text):
+    #Code from ichecklib
+    tokens = nltk.word_tokenize(text)
+    words = [word.lower() for word in tokens]
+    return words
+
+def get_vocabulary(filenames):
+    return vocabulary(filenames)
+
 def parse_arguments():
     from argparse import RawTextHelpFormatter
 
-    parser = argparse.ArgumentParser(description='Check python code static quality metrics.', formatter_class=RawTextHelpFormatter)
-    parser.add_argument("-m", "--metrics", nargs = 1, help="get values of cc, header, lloc, pep8, vhalstead")
-    parser.add_argument("-f", "-fb", "--feedback", nargs = 1, help="present warning messages referring to static quality metrics")
-    parser.add_argument("-p","-prof", "--prof", nargs = "*", help="get values of cc, header, lloc, pep8, vhalstead referring to a given pattern or file(s)")
-    parser.add_argument("-s","--set", nargs = 1, help="set reference solution")
+    parser = argparse.ArgumentParser(description='Check python code static quality metrics.',
+                                      formatter_class=RawTextHelpFormatter)
+    parser.add_argument("-m", "--metrics",
+                         nargs = 1,
+                         help="get values of cc, header, lloc, pep8, vhalstead")
+    parser.add_argument("-f", "-fb", "--feedback",
+                         nargs = 1,
+                         help="present warning messages referring to static quality metrics")
+    parser.add_argument("-p","-prof", "--prof",
+                         nargs = "*",
+                         help="get values of cc, header, lloc, pep8, vhalstead referring to a given pattern or file(s)")
+    parser.add_argument("-s","--set",
+                         nargs = 1,
+                         help="set reference solution")
     #mudei aqui
-    parser.add_argument("-sps","--problemspec", nargs = 1, help="set problem specification")
-    parser.add_argument("-o", "--outputformat", type=str, default="human", choices=["human","json"], help="set output format")
+    parser.add_argument("-sps","--problemspec",
+                         nargs = 1,
+                         help="set problem specification")
+    parser.add_argument("-o", "--outputformat",
+                        type=str, default="human",
+                        choices=["human","json"],
+                        help="set output format")
     
     parser.add_argument("filename", nargs="*", default = [""])
     
@@ -430,8 +516,7 @@ def parse_arguments():
     
     return filenames, function, args.outputformat
 
-def main():
-    
+def main():   
     filenames, function, outputformat = parse_arguments()
     logit = ""
     try:
@@ -447,9 +532,10 @@ def main():
             report = QCHECKFILE + " was created."
         
         elif function in ('problemspec'):
+            # set problem specification
             report = "problem specification was setted."
             vocabulary = get_vocabulary(filenames)
-            #write_results(vocabulary, QCHECKFILE)
+            write_identifiers(vocabulary, QCHECKFILE)
             report = QCHECKFILE + " was created."
 
         elif function in ('feedback'): 

@@ -1,19 +1,11 @@
 {
   "quality": [
-    [
-      "name",
-      ":",
-      "lingerlabel",
-      ":",
-      "lingertype",
-      ":",
-      "problemtext",
-      ":",
-      "|",
-      "#",
-      "jogo",
-      "de",
-      "tabuleiro",
-      "-",
-      "linger",
-      "linger"
+    {
+      "cc": 11,
+      "pep8": 0,
+      "lloc": 14,
+      "vhalstead": 183.94,
+      "header": 5
+    }
+  ]
+}

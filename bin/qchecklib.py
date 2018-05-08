@@ -127,6 +127,5 @@ def save(message):
     type_ = 'accept'
     urlrequest.urlopen(url + type_, data=message)
     
-    
 if __name__ == '__main__':
   print("qchecklib is a helper module for tst_qcheck commands")
