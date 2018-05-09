@@ -11,6 +11,12 @@ import nltk
 
 from nltk import wordpunct_tokenize
 
+try:
+    sys.path.append('/usr/local/bin/radon/')
+except ImportError:
+    print("tst quality checker needs radon to work.")
+    sys.exit(1)
+
 def vocabulary(filename):
     with io.open(filename, encoding='utf-8') as f:
         tst_json = json.load(f)

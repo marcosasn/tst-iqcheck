@@ -20,23 +20,18 @@ import argparse
 import qchecklib
 import tstlib
 
+import unidecode
 import nltk
 import io
 import ast
+import yaml
 from nltk.corpus import stopwords
 from nltk import wordpunct_tokenize
 from nltk.stem.lancaster import LancasterStemmer
-
+from os import listdir
+from os.path import isfile, join
+            
 from fileinput import filename
-
-bin_path = os.path.abspath('bin/')
-
-sys.path.append(bin_path)
-try:
-    import qchecklib
-except ImportError:
-    print("erro ao importar")
-
 
 # Feedback Messages
 SHORTHEADER = "Your program header is too short."
@@ -154,8 +149,25 @@ def icheck(filename):
     student_identifiers = get_identifiers(filename)
     
     #contrast terms from spec and terms from student code
+    non_problem_ids = []
+    cont = 0
+    for id in student_identifiers:
+        if '_' in id:
+            cont_ids = 0
+            ids = id.split('_')
+            for s in ids:
+                if s in problem_vocabulary:
+                    cont_ids += 1
+            if cont_ids == len(ids):
+                cont += 1
+            
+        elif id in problem_vocabulary:
+            cont += 1
+        else:
+            non_problem_ids.append(id)
+        #TODO elif uperCase
     
-    return identifiers_student
+    return student_identifiers
 
 def get_identifiers(filename):
     #Code from ichecklib
@@ -223,7 +235,9 @@ def pack_logfeedback(results):
 def pack_markdownfeedback(filename, results):
     codeline = "### Code\n"
     styleline = "### Style\n"
-    codewarnings, stylewarnings = 0, 0
+    vocabularyline = "### Vocabulary\n"
+
+    codewarnings, stylewarnings, vocabularywarnings = 0, 0, 0
     
     if not results:
         return ""
@@ -252,14 +266,15 @@ def pack_markdownfeedback(filename, results):
     #ICHECK
     if results.get("icheck") and len(results.get("icheck")) > 1:
         for i in range(0, len(results.get("icheck"))):
-            codeline +=  '- {} {}\n'.format(results.get("icheck")[i], NOPROBLEMIDENTIFIER) 
-            codewarnings += 1
+            vocabularyline +=  '- *{}* {}\n'.format(results.get("icheck")[i], NOPROBLEMIDENTIFIER) 
+            vocabularywarnings += 1
     
-    if stylewarnings or codewarnings:
+    if stylewarnings or codewarnings or vocabularywarnings:
         header = LBLUE + "# %s\n\n" % filename
-        report = LCYAN + "**%d Warning(s)** \n\n" % (stylewarnings + codewarnings) + RESET
+        report = LCYAN + "**%d Warning(s)** \n\n" % (stylewarnings + codewarnings + vocabularywarnings) + RESET
         messages = codeline if codewarnings else ""
         messages += styleline if stylewarnings else ""
+        messages += vocabularyline if vocabularywarnings else ""
         text = header + report + messages[:-1]
     else:
         text = LCYAN + "** %s **" % NOWARNINGS + RESET
@@ -346,7 +361,7 @@ def write_results(results, QCHECKFILE):
 
         data["quality"] = [results]
 
-        with codecs.open(QCHECKFILE, mode='w') as fp:
+        with codecs.open(QCHECKFILE, mode='w', encoding='utf-8') as fp:
             json.dump(data, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
     
 def write_problem_vocabulary(results, QCHECKFILE):
@@ -451,24 +466,24 @@ def get_filestocheck(pattern):
     
     return filenames
 
-def vocabulary(filename):
-    #Code from ichecklib
-    with io.open(filename, encoding='utf-8') as f:
-        tst_json = json.load(f)
-    problem = tst_json["files"]["linger.yaml"]["data"]
-    problem = problem.replace('\n', '')
+def generate_problemvocabulary(problem_file):
+    with codecs.open(problem_file, mode='r', encoding='utf-8') as fp:
+        problem_file = yaml.load(fp)
+    
+    problem = problem_file["text"].replace('\n', '')
     language = detect_language(problem)
-    vocabulary = tokenize_text(problem)
-    return filter_stop_words(vocabulary, language)
+    vocabulary = filter_stopwords(tokenize_text(problem),language)
+    return vocabulary
 
-def filter_stop_words(vocabulary, language):
+def filter_stopwords(vocabulary, language):
     #Code from ichecklib
-    stopWords = set(stopwords.words(language))
-    vocabularyFiltered = []
+    #Code borrowed. (c) 2013 Alejandro Nolla
+    stop_words = set(stopwords.words(language))
+    vocabulary_filtered = []
     for v in vocabulary:
-        if v not in stopWords:
-            vocabularyFiltered.append(v)
-    return(vocabularyFiltered)
+        if v not in stop_words:
+            vocabulary_filtered.append(v)
+    return vocabulary_filtered
 
 def _calculate_languages_ratios(text):
     #Code from ichecklib
@@ -492,9 +507,10 @@ def detect_language(text):
     return most_rated_language
 
 def get_steams(taged_tokens):
+    #Code from ichecklib
     stemmer = nltk.stem.RSLPStemmer()
-    is_not_noun = lambda pos: pos[:2] != 'NN'
-    is_noun = lambda pos: pos[:2] == 'NN'
+    is_not_noun = lambda pos: pos[:2] in ('VB','VBP','VBG','VBD','VBZ')
+    is_noun = lambda pos: pos[:2] in ('NNP','NN')
 
     steams = []
     
@@ -508,15 +524,15 @@ def get_steams(taged_tokens):
 def tokenize_text(text):
     #Code from ichecklib
     #Removing pontuaction and numbers
-    tokenizer = nltk.RegexpTokenizer(r'[a-zA-Z]\w+')
-    tokens = tokenizer.tokenize(text)
+    tokens = nltk.RegexpTokenizer(r'[a-zA-Z]\w+').tokenize(text)
     taged_tokens = nltk.pos_tag(tokens)
-    vocabulary = get_steams(taged_tokens)    
-    vocabulary = [word.lower() for word in vocabulary]
-    return set(vocabulary)
+    #taged_tokens = nltk.corpus.tagged_words(text)
+    transformed_vocabulary = get_steams(taged_tokens)    
+    vocabulary = set([unidecode.unidecode(word.lower()) for word in transformed_vocabulary])
+    return vocabulary
 
-def get_vocabulary(filenames):
-    return vocabulary(filenames)
+def get_problemvocabulary(problem_file):
+    return generate_problemvocabulary(problem_file)
 
 def parse_arguments():
     from argparse import RawTextHelpFormatter
@@ -535,9 +551,6 @@ def parse_arguments():
     parser.add_argument("-s","--set",
                          nargs = 1,
                          help="set reference solution")
-    parser.add_argument("-sps","--problemspec",
-                         nargs = 1,
-                         help="set problem specification")
     parser.add_argument("-o", "--outputformat",
                         type=str, default="human",
                         choices=["human","json"],
@@ -552,9 +565,6 @@ def parse_arguments():
     elif args.set:
         filenames = args.set[0]
         function = "set"
-    elif args.problemspec:
-        filenames = args.problemspec[0]
-        function = "problemspec"
     elif args.feedback:
         filenames = args.feedback[0]
         function = "feedback"
@@ -579,14 +589,15 @@ def main():
         elif function in ('set'): 
             # set reference solution file
             results = get_rawmetrics(filenames)
+            
+            problem_file = glob.glob('*.yaml')
+            if not problem_file:
+                print( "qcheck: the problem specification description in yaml file is needed.")
+                sys.exit()
+            problem_vocabulary = get_problemvocabulary(problem_file[0])
+            
             write_results(results, QCHECKFILE)
-            report = QCHECKFILE + " was created."
-        
-        elif function in ('problemspec'):
-            # set problem specification
-            report = "problem specification was setted."
-            vocabulary = get_vocabulary(filenames)
-            write_problem_vocabulary(vocabulary, QCHECKFILE)
+            write_problem_vocabulary(problem_vocabulary, QCHECKFILE)
             report = QCHECKFILE + " was created."
 
         elif function in ('feedback'): 

@@ -1,32 +1,28 @@
 # coding: utf-8
-# Solucao de referencia atribuida, de forma ad hoc, a um aluno.
-# Não foi encontrada solucao de referencia proposta por professor.
-# Rever esta solref no futuro
-# Sávio morais
+# Linger
+# Referencia, Eliane Araujo
 
-x = float(raw_input())
-y = float(raw_input())
+tabuleiro_invalido = False
+tam = int(raw_input())
 
-if x > 0 and y > 0:
-    print 'Primeiro quadrante.'
-elif x < 0 and y > 0:
-    print 'Segundo quadrante.'
-elif x < 0 and y < 0:
-    print 'Terceiro quadrante.'
-elif x > 0 and y < 0:
-    print 'Quarto quadrante.'
-elif x == 0 and y == 0:
-    print 'Centro.'
+bola, xis = 0, 0
+
+for i in range(tam):
+    linha = raw_input()
+    if len(linha) != tam:
+        tabuleiro_invalido = True
+        break
+    for i in range(tam):
+        if linha[i] == 'o':
+            bola += 1
+        else:
+            xis += 1
+
+if tabuleiro_invalido:
+    print "Tabuleiro inválido"
+elif bola > xis:
+    print "Bola ganhou com %d pontos." % bola
+elif xis > bola:
+    print "Xis ganhou com %d pontos." % xis
 else:
-    print 'Sobre eixo.'
-####
-# user: savio.morais@ccc.ufcg.edu.br
-# group: prog1-20152
-# mode: mtp3
-# open_datetime: None
-# create_datetime: 2016-03-04T12:03:25.785040
-# revision: 1
-# activity: 5893009501585408-1.0.1
-# assignment: 6347460662263808
-# ip: 150.165.75.252
-# timestamp: 2016-03-04T12:13:34.147360
+    print "Empate em %d pontos." % bola
