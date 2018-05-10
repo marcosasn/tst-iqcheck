@@ -12,13 +12,16 @@ import unidecode
 import yaml
 import codecs
 import ast
+import re
 from fileinput import filename
 
 try:
     sys.path.append('/usr/local/bin/nltk/')
-    from nltk.corpus import stopwords
     from nltk import wordpunct_tokenize
+    from nltk.corpus import wordnet
+    from nltk.corpus import stopwords
     from nltk.stem.lancaster import LancasterStemmer
+    from nltk import RegexpTokenizer
 except ImportError:
     print("tst quality checker needs nltk to work.")
     sys.exit(1)
@@ -35,7 +38,7 @@ def generate_problemvocabulary(problem_file):
     with codecs.open(problem_file, mode='r', encoding='utf-8') as fp:
         problem_file = yaml.load(fp)
     
-    problem = problem_file["text"].replace('\n', '')
+    problem = problem_file["text"].lower().replace('\n', '').replace('_', '')
     tokens = filter_stopwords(tokenize_text(problem), detect_language(problem))
     tokens_taged = nltk.pos_tag(tokens)
     vocabulary = transform_steams(tokens_taged)    
@@ -43,8 +46,13 @@ def generate_problemvocabulary(problem_file):
 
 def tokenize_text(problem):
     #Removing pontuaction and numbers
-    tokens = nltk.RegexpTokenizer(r'[a-zA-Z]\w+').tokenize(problem)
-    return [token.lower() for token in tokens]
+    is_sensetoken = lambda t: not re.compile(r'([a-z])\1+').match(t)
+    is_sensetoken2 = lambda t: not t.endswith('py')
+    
+    tokens = RegexpTokenizer(r'[a-zA-Z]\w+').tokenize(problem)
+    tokens = filter(is_sensetoken, tokens)
+    tokens = filter(is_sensetoken2, tokens)
+    return list(set(tokens))
     
 def filter_stopwords(tokens, language):
     #Code borrowed. (c) 2013 Alejandro Nolla
@@ -117,6 +125,7 @@ def ichecking(problem_vocabulary, filename):
     come_notproblemvocabulary = []
 
     count_comenot = 0
+    #https://stackoverflow.com/questions/3788870/how-to-check-if-a-word-is-an-english-word-with-python
     for id in student_vocabulary:
         if 'of' in id.lower() or 'de' in id.lower() or '_' in id.lower():
             if check_composedidentifier(id, problem_vocabulary):
