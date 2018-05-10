@@ -20,17 +20,15 @@ import argparse
 import qchecklib
 import tstlib
 
-import unidecode
-import nltk
-import io
-import ast
-import yaml
-from nltk.corpus import stopwords
-from nltk import wordpunct_tokenize
-from nltk.stem.lancaster import LancasterStemmer
-from os import listdir
-from os.path import isfile, join
-            
+##################
+import os.path
+
+#soluction provided by https://stackoverflow.com/questions/7587457/importerror-no-module-named-python
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+import bin
+from bin import ichecklib
+##################
+
 from fileinput import filename
 
 # Feedback Messages
@@ -135,48 +133,9 @@ def quality_report( raw_metrics ):
 def get_problem_vocabulary(): 
     qcheckjson = read_qcheckjson(exit=True)
     if qcheckjson.get("problem_vocabulary"):
-        return qcheckjson.get("problem_vocabulary")[0]
+        return qcheckjson.get("problem_vocabulary")
     else:
         return {}
-
-def icheck(filename):
-    #Code from ichecklib
-    #identifiers from spec
-    if get_problem_vocabulary():
-        problem_vocabulary = get_problem_vocabulary()
-
-    #identifiers from student
-    student_identifiers = get_identifiers(filename)
-    
-    #contrast terms from spec and terms from student code
-    non_problem_ids = []
-    cont = 0
-    for id in student_identifiers:
-        if '_' in id:
-            cont_ids = 0
-            ids = id.split('_')
-            for s in ids:
-                if s in problem_vocabulary:
-                    cont_ids += 1
-            if cont_ids == len(ids):
-                cont += 1
-            
-        elif id in problem_vocabulary:
-            cont += 1
-        else:
-            non_problem_ids.append(id)
-        #TODO elif uperCase
-    
-    return student_identifiers
-
-def get_identifiers(filename):
-    #Code from ichecklib
-    program = ast.parse(open(filename).read())  
-    names = []
-    for node in ast.walk(program):
-        if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Load):
-            names.append(node.id)
-    return list(set(names))
 
 def get_metrics(filename):
     results = {
@@ -185,7 +144,7 @@ def get_metrics(filename):
         "vhalstead": qchecklib.vhalstead(filename),
         "pep8": qchecklib.pep8(filename),
         "header": qchecklib.header_lines(filename),
-        "icheck": icheck(filename)
+        "icheck": ichecklib.ichecking(get_problem_vocabulary(), filename)
     }
     return results
 
@@ -466,73 +425,8 @@ def get_filestocheck(pattern):
     
     return filenames
 
-def generate_problemvocabulary(problem_file):
-    with codecs.open(problem_file, mode='r', encoding='utf-8') as fp:
-        problem_file = yaml.load(fp)
-    
-    problem = problem_file["text"].replace('\n', '')
-    language = detect_language(problem)
-    vocabulary = filter_stopwords(tokenize_text(problem),language)
-    return vocabulary
-
-def filter_stopwords(vocabulary, language):
-    #Code from ichecklib
-    #Code borrowed. (c) 2013 Alejandro Nolla
-    stop_words = set(stopwords.words(language))
-    vocabulary_filtered = []
-    for v in vocabulary:
-        if v not in stop_words:
-            vocabulary_filtered.append(v)
-    return vocabulary_filtered
-
-def _calculate_languages_ratios(text):
-    #Code from ichecklib
-    #Code borrowed. (c) 2013 Alejandro Nolla
-    languages_ratios = {}
-    words = tokenize_text(text)
-    
-    for language in stopwords.fileids():
-        stopwords_set = set(stopwords.words(language))
-        words_set = set(words)
-        common_elements = words_set.intersection(stopwords_set)
-        languages_ratios[language] = len(common_elements) # language "score"
-
-    return languages_ratios
-
-def detect_language(text):
-    #Code from ichecklib
-    #Code borrowed. (c) 2013 Alejandro Nolla
-    ratios = _calculate_languages_ratios(text)
-    most_rated_language = max(ratios, key=ratios.get)
-    return most_rated_language
-
-def get_steams(taged_tokens):
-    #Code from ichecklib
-    stemmer = nltk.stem.RSLPStemmer()
-    is_not_noun = lambda pos: pos[:2] in ('VB','VBP','VBG','VBD','VBZ')
-    is_noun = lambda pos: pos[:2] in ('NNP','NN')
-
-    steams = []
-    
-    for (word, pos) in taged_tokens:
-        if is_not_noun(pos):
-            steams.append(stemmer.stem(word))
-        elif is_noun(pos):
-            steams.append(word)
-    return steams
-
-def tokenize_text(text):
-    #Code from ichecklib
-    #Removing pontuaction and numbers
-    tokens = nltk.RegexpTokenizer(r'[a-zA-Z]\w+').tokenize(text)
-    taged_tokens = nltk.pos_tag(tokens)
-    #taged_tokens = nltk.corpus.tagged_words(text)
-    transformed_vocabulary = get_steams(taged_tokens)    
-    vocabulary = set([unidecode.unidecode(word.lower()) for word in transformed_vocabulary])
-    return vocabulary
-
 def get_problemvocabulary(problem_file):
-    return generate_problemvocabulary(problem_file)
+    return ichecklib.generate_problemvocabulary(problem_file)
 
 def parse_arguments():
     from argparse import RawTextHelpFormatter
@@ -589,9 +483,12 @@ def main():
         elif function in ('set'): 
             # set reference solution file
             results = get_rawmetrics(filenames)
-            
+                        
             problem_file = glob.glob('*.yaml')
             if not problem_file:
+                print( "qcheck: the problem specification description in yaml file is needed.")
+                sys.exit()
+            elif problem_file and not problem_file[0]:
                 print( "qcheck: the problem specification description in yaml file is needed.")
                 sys.exit()
             problem_vocabulary = get_problemvocabulary(problem_file[0])
