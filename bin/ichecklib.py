@@ -136,6 +136,11 @@ def ichecking(problem_vocabulary, filename):
             come_notproblemvocabulary.append(id)
     return come_notproblemvocabulary
 
+def icheckscore(problem_vocabulary, filename):
+    student_vocabulary = get_studentidentifiers(filename)
+    come_notproblemvocabulary = ichecking(problem_vocabulary, filename)
+    return (len(student_vocabulary)-len(come_notproblemvocabulary))/float(len(student_vocabulary))
+
 def save(message):
     type_ = 'accept'
     urlrequest.urlopen(url + type_, data=message)

@@ -37,7 +37,7 @@ HIGHLLOC = "Your program has too many lines of code."
 HIGHCC = "Your program has too many decision points."
 HIGHVHALSTEAD = "Your program has too many operations (Example: +,-,==, etc)."
 NOREFERENCE = "There are no reference values."
-NOPROBLEMIDENTIFIER = "does not reflects the problem specification."
+NOPROBLEMIDENTIFIER = "appears to not reflect the problem specification."
 NOWARNINGS = "No warnings. Congratulations!"
 
 # Output Settings
@@ -52,6 +52,7 @@ LBLUE = '\033[1;34m'
 LGREEN = '\033[1;32m'
 LCYAN = '\033[1;36m'
 RESET = '\033[0m'
+BOLD = '\033[1m'
 
 def get_refmetrics(): 
     qcheckjson = read_qcheckjson(exit=True)
@@ -125,8 +126,8 @@ def quality_report( raw_metrics ):
     if not check_header(raw_metrics.get("header")):
         report["header"].append( SHORTHEADER )
     #ICHECK
-    if raw_metrics.get("icheck"):
-        report["icheck"] = raw_metrics.get("icheck")
+    if raw_metrics.get("ichecking"):
+        report["ichecking"] = raw_metrics.get("ichecking")
     
     return report
 
@@ -144,7 +145,7 @@ def get_metrics(filename):
         "vhalstead": qchecklib.vhalstead(filename),
         "pep8": qchecklib.pep8(filename),
         "header": qchecklib.header_lines(filename),
-        "icheck": ichecklib.ichecking(get_problem_vocabulary(), filename)
+        "ichecking": ichecklib.ichecking(get_problem_vocabulary(), filename)
     }
     return results
 
@@ -154,7 +155,8 @@ def get_rawmetrics(filename):
         "cc": qchecklib.cc(filename),
         "vhalstead": qchecklib.vhalstead(filename),
         "pep8": qchecklib.pep8count(filename),
-        "header": qchecklib.header_lines(filename)
+        "header": qchecklib.header_lines(filename),
+        "icheckscore": ichecklib.icheckscore(get_problem_vocabulary(), filename)
     }  
     return results
 
@@ -179,15 +181,18 @@ def get_logdata(filenames, output):
     return tstlib.data2json(content)
     
 def pack_logfeedback(results):
-    style, code = 0, 0
-    code_feedbacks = ["cc", "header", "lloc", "vhalstead", "icheck"]
+    style, code, vocabulary = 0, 0, 0
+    code_feedbacks = ["cc", "header", "lloc", "vhalstead"]
+    vocabulary_feedback = ["ichecking"]
     for feedback, message in results.items():
         if len(message) > 1:
             if feedback in code_feedbacks:
                 code += 1
+            elif feedback in vocabulary_feedback:
+                vocabulary += 1
             else:
                 style += message[0]    
-    report = { "stylewarning": style, "codewarning": code,  "feedback": results }
+    report = { "stylewarning": style, "codewarning": code, "vocabularywarning": vocabulary,  "feedback": results }
     
     return report
 
@@ -223,9 +228,12 @@ def pack_markdownfeedback(filename, results):
             styleline+=  "- %s\n" % results.get("pep8")[i]
             stylewarnings += 1
     #ICHECK
-    if results.get("icheck") and len(results.get("icheck")) > 1:
-        for i in range(0, len(results.get("icheck"))):
-            vocabularyline +=  '- *{}* {}\n'.format(results.get("icheck")[i], NOPROBLEMIDENTIFIER) 
+    if results.get("ichecking") and len(results.get("ichecking")) > 1:
+        for i in range(0, len(results.get("ichecking"))):
+            vocabularyline += '- {}*{}*{} {}\n'.format(BOLD,
+                                                       results.get("ichecking")[i],
+                                                       RESET,
+                                                       NOPROBLEMIDENTIFIER) 
             vocabularywarnings += 1
     
     if stylewarnings or codewarnings or vocabularywarnings:
@@ -285,6 +293,10 @@ def pack_readablemetrics(results):
     #RVHALSTEAD
     if results.get("vhalstead") is not None:
         line += '{0:>{width}.{precision}f}'.format(results.get("vhalstead"), \
+                                                   width = COLNUMBERWIDTH + 3, precision = 2)
+    #ICHECK
+    if results.get("icheckscore") is not None:
+        line += '{0:>{width}.{precision}f}'.format(results.get("icheckscore"), \
                                                    width = COLNUMBERWIDTH + 3, precision = 2)
     return line
 

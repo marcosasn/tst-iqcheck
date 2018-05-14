@@ -1,11 +1,12 @@
 {
   "quality": [
     {
-      "cc": 8,
-      "pep8": 0,
       "lloc": 21,
+      "pep8": 0,
+      "cc": 8,
+      "header": 3,
       "vhalstead": 105.49,
-      "header": 3
+      "icheckscore": 0.6666666666666666
     }
   ],
   "problem_vocabulary": [
