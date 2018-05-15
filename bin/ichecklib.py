@@ -90,49 +90,54 @@ def transform_steams(tokens_taged):
     
     for (word, pos) in tokens_taged:
         if is_not_noun(pos):
+            #Strip affixes from the token and return the stem.
             vocabulary.append(stemmer.stem(word))
         elif is_noun(pos):
             vocabulary.append(word)
     return vocabulary
 
-def is_problemidwithuderscore(id, problem_vocabulary):
+def check_idwithuderscore(id, problem_vocabulary):
     cont_ids = 0
     ids = id.split('_')
     for s in ids:
-        if s in problem_vocabulary:
+        if s.lower() in problem_vocabulary:
             cont_ids += 1
     if cont_ids == len(ids):
         return True
-    else:
-        return False
-
-def is_idwithuppercase(id):
-    for i in id:
-        if i.isupper():
-            return True
     return False
 
-def check_composedidentifier(id, problem_vocabulary):
-    #check underscore
-    if "_" in id:
-        return is_problemidwithuderscore(id, problem_vocabulary)
-    #check camelcase
-    else:
-        return False
+def is_idwithuderscore(id):
+    return "_" in id.lower()
+
+def check_idwithcamelcase(id, problem_vocabulary):
+    #print id
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', id)
+    s1 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+    return check_idwithuderscore(s1, problem_vocabulary)
+
+def is_idwithcamelcase(id):
+    return (id != id.lower() and id != id.upper())
+
+def is_idwithprep(id):
+    return 'of' in id.lower() or 'de' in id.lower()
         
 def ichecking(problem_vocabulary, filename):
     student_vocabulary = get_studentidentifiers(filename)
     come_notproblemvocabulary = []
 
-    count_comenot = 0
     #https://stackoverflow.com/questions/3788870/how-to-check-if-a-word-is-an-english-word-with-python
     for id in student_vocabulary:
-        if 'of' in id.lower() or 'de' in id.lower() or '_' in id.lower():
-            if check_composedidentifier(id, problem_vocabulary):
-                count_comenot += 1
-        elif id in problem_vocabulary:
-            count_comenot += 1
-        else:
+        is_idfromproblem = False
+        
+        if id.lower() in problem_vocabulary:
+            is_idfromproblem = True
+        elif is_idwithuderscore(id):
+            is_idfromproblem = check_idwithuderscore(id, problem_vocabulary)
+        elif is_idwithcamelcase(id):
+            is_idfromproblem = check_idwithcamelcase(id, problem_vocabulary)
+        #elif is_idwithprep(id):
+            
+        if not is_idfromproblem:
             come_notproblemvocabulary.append(id)
     return come_notproblemvocabulary
 

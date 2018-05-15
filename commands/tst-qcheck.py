@@ -125,7 +125,7 @@ def quality_report( raw_metrics ):
     report["header"] = [raw_metrics.get("header")]    
     if not check_header(raw_metrics.get("header")):
         report["header"].append( SHORTHEADER )
-    #ICHECK
+    #ICHECKING
     if raw_metrics.get("ichecking"):
         report["ichecking"] = raw_metrics.get("ichecking")
     
@@ -227,7 +227,7 @@ def pack_markdownfeedback(filename, results):
         for i in range(1, len(results.get("pep8"))):
             styleline+=  "- %s\n" % results.get("pep8")[i]
             stylewarnings += 1
-    #ICHECK
+    #ICHECKING
     if results.get("ichecking") and len(results.get("ichecking")) > 1:
         for i in range(0, len(results.get("ichecking"))):
             vocabularyline += '- {}*{}*{} {}\n'.format(BOLD,
@@ -294,7 +294,7 @@ def pack_readablemetrics(results):
     if results.get("vhalstead") is not None:
         line += '{0:>{width}.{precision}f}'.format(results.get("vhalstead"), \
                                                    width = COLNUMBERWIDTH + 3, precision = 2)
-    #ICHECK
+    #ICHECKSCORE
     if results.get("icheckscore") is not None:
         line += '{0:>{width}.{precision}f}'.format(results.get("icheckscore"), \
                                                    width = COLNUMBERWIDTH + 3, precision = 2)
