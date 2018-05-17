@@ -38,7 +38,12 @@ def generate_problemvocabulary(problem_file):
     with codecs.open(problem_file, mode='r', encoding='utf-8') as fp:
         problem_file = yaml.load(fp)
     
-    problem = problem_file["text"].lower().replace('\n', '').replace('_', '')
+    problem = problem_file["text"].lower()
+    delimiters = ['\n', '_', '**', '$', '#', '##']
+    
+    for delimiter in delimiters:
+        problem = problem.replace(delimiter, '')
+    
     tokens = filter_stopwords(tokenize_text(problem), detect_language(problem))
     tokens_taged = nltk.pos_tag(tokens)
     vocabulary = transform_steams(tokens_taged)    
@@ -46,12 +51,12 @@ def generate_problemvocabulary(problem_file):
 
 def tokenize_text(problem):
     #Removing pontuaction and numbers
-    is_sensetoken = lambda t: not re.compile(r'([a-z])\1+').match(t)
-    is_sensetoken2 = lambda t: not t.endswith('py')
+    is_wordwithrepeatedletters = lambda t: not re.compile(r'([a-z])\1+').match(t)
+    is_fileextension = lambda t: not t.endswith('py')
     
     tokens = RegexpTokenizer(r'[a-zA-Z]\w+').tokenize(problem)
-    tokens = filter(is_sensetoken, tokens)
-    tokens = filter(is_sensetoken2, tokens)
+    tokens = filter(is_wordwithrepeatedletters, tokens)
+    tokens = filter(is_fileextension, tokens)
     return list(set(tokens))
     
 def filter_stopwords(tokens, language):
@@ -97,12 +102,15 @@ def transform_steams(tokens_taged):
     return vocabulary
 
 def check_idwithuderscore(id, problem_vocabulary):
-    cont_ids = 0
     ids = id.split('_')
-    for s in ids:
-        if s.lower() in problem_vocabulary:
+    cont_ids = 0
+    cont_idsfromspec = 0
+    for i in ids:
+        if(len(i) > 1):
             cont_ids += 1
-    if cont_ids == len(ids):
+            if i.lower() in problem_vocabulary:
+                cont_idsfromspec += 1
+    if cont_ids == cont_idsfromspec:
         return True
     return False
 
@@ -118,8 +126,17 @@ def check_idwithcamelcase(id, problem_vocabulary):
 def is_idwithcamelcase(id):
     return (id != id.lower() and id != id.upper())
 
+def check_idwithprep(id, problem_vocabulary):
+    if '_of_' in id.lower():
+        ids = id.lower().split('_of_')
+        return check_idwithuderscore('_'.join(ids),problem_vocabulary)
+    elif '_de_' in id.lower():
+        ids = id.lower().split('_de_')
+        return check_idwithuderscore('_'.join(ids),problem_vocabulary)
+    return False
+
 def is_idwithprep(id):
-    return 'of' in id.lower() or 'de' in id.lower()
+    return '_of_' in id.lower() or '_de_' in id.lower()
         
 def ichecking(problem_vocabulary, filename):
     student_vocabulary = get_studentidentifiers(filename)
@@ -127,17 +144,17 @@ def ichecking(problem_vocabulary, filename):
 
     #https://stackoverflow.com/questions/3788870/how-to-check-if-a-word-is-an-english-word-with-python
     for id in student_vocabulary:
-        is_idfromproblem = False
+        is_fromproblem = False
         
         if id.lower() in problem_vocabulary:
-            is_idfromproblem = True
+            is_fromproblem = True
         elif is_idwithuderscore(id):
-            is_idfromproblem = check_idwithuderscore(id, problem_vocabulary)
+            is_fromproblem = check_idwithuderscore(id, problem_vocabulary)
         elif is_idwithcamelcase(id):
-            is_idfromproblem = check_idwithcamelcase(id, problem_vocabulary)
-        #elif is_idwithprep(id):
-            
-        if not is_idfromproblem:
+            is_fromproblem = check_idwithcamelcase(id, problem_vocabulary)
+        elif is_idwithprep(id):
+            is_fromproblem = check_idwithprep(id, problem_vocabulary)
+        if not is_fromproblem:
             come_notproblemvocabulary.append(id)
     return come_notproblemvocabulary
 
