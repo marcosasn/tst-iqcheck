@@ -103,60 +103,69 @@ def transform_steams(tokens_taged):
 
 def check_idwithuderscore(id, problem_vocabulary):
     ids = id.split('_')
-    cont_ids = 0
-    cont_idsfromspec = 0
+    count_idsfromproblem = 0
     for i in ids:
-        if(len(i) > 1):
-            cont_ids += 1
-            if i.lower() in problem_vocabulary:
-                cont_idsfromspec += 1
-    if cont_ids == cont_idsfromspec:
+        if id_checking(i.lower(), problem_vocabulary):
+            count_idsfromproblem += 1
+    if count_idsfromproblem >= 1:
         return True
     return False
 
-def is_idwithuderscore(id):
+def has_underscore(id):
     return "_" in id.lower()
 
 def check_idwithcamelcase(id, problem_vocabulary):
-    #print id
-    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', id)
-    s1 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
-    return check_idwithuderscore(s1, problem_vocabulary)
+    uppercase_tounderscore = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', id)
+    lowercase_tounderscore = re.sub('([a-z0-9])([A-Z])', r'\1_\2',
+                                     uppercase_tounderscore)
+    return check_idwithuderscore(lowercase_tounderscore, problem_vocabulary)
 
-def is_idwithcamelcase(id):
+def has_camelcase(id):
     return (id != id.lower() and id != id.upper())
 
-def check_idwithprep(id, problem_vocabulary):
-    if '_of_' in id.lower():
-        ids = id.lower().split('_of_')
-        return check_idwithuderscore('_'.join(ids),problem_vocabulary)
-    elif '_de_' in id.lower():
-        ids = id.lower().split('_de_')
-        return check_idwithuderscore('_'.join(ids),problem_vocabulary)
-    return False
+def is_simpleid(id):
+    return id == id.lower()
 
-def is_idwithprep(id):
-    return '_of_' in id.lower() or '_de_' in id.lower()
+def id_checking(id, problem_vocabulary):
+    stemmer = nltk.stem.RSLPStemmer()
+    if len(id) < 2:
+        return False
+    
+    elif id in problem_vocabulary:
+        return True
+    
+    elif stemmer.stem(id) in problem_vocabulary:
+        return True
+    
+    elif id in [stemmer.stem(word) for word in problem_vocabulary]:
+        return True
+    
+    elif stemmer.stem(id) in [stemmer.stem(word) for word in problem_vocabulary]:
+        return True 
+    
+    return False
         
 def ichecking(problem_vocabulary, filename):
+    stemmer = nltk.stem.RSLPStemmer()
     student_vocabulary = get_studentidentifiers(filename)
-    come_notproblemvocabulary = []
+    came_notfromproblem = []
 
-    #https://stackoverflow.com/questions/3788870/how-to-check-if-a-word-is-an-english-word-with-python
     for id in student_vocabulary:
         is_fromproblem = False
         
-        if id.lower() in problem_vocabulary:
-            is_fromproblem = True
-        elif is_idwithuderscore(id):
+        if has_underscore(id):
             is_fromproblem = check_idwithuderscore(id, problem_vocabulary)
-        elif is_idwithcamelcase(id):
+            
+        elif has_camelcase(id):
             is_fromproblem = check_idwithcamelcase(id, problem_vocabulary)
-        elif is_idwithprep(id):
-            is_fromproblem = check_idwithprep(id, problem_vocabulary)
+               
+        elif is_simpleid(id):
+            is_fromproblem = id_checking(id.lower(), problem_vocabulary)
+        
         if not is_fromproblem:
-            come_notproblemvocabulary.append(id)
-    return come_notproblemvocabulary
+            came_notfromproblem.append(id)
+
+    return came_notfromproblem
 
 def icheckscore(problem_vocabulary, filename):
     student_vocabulary = get_studentidentifiers(filename)

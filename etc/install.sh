@@ -22,7 +22,6 @@ BASHRC=~/.bashrc
 # URL
 CC_URL='https://raw.githubusercontent.com/mattjmorrison/Python-Cyclomatic-Complexity/master/cc.py'
 PYCODESTYLE_URL='https://raw.githubusercontent.com/PyCQA/pycodestyle/master/pycodestyle.py'
-NLTK_URL = 
 
 # colors
 RESET="\033[0m"

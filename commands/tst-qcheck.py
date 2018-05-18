@@ -228,7 +228,7 @@ def pack_markdownfeedback(filename, results):
             styleline+=  "- %s\n" % results.get("pep8")[i]
             stylewarnings += 1
     #ICHECKING
-    if results.get("ichecking") and len(results.get("ichecking")) > 1:
+    if results.get("ichecking") and len(results.get("ichecking")) >= 1:
         for i in range(0, len(results.get("ichecking"))):
             vocabularyline += '- {}*{}*{} {}\n'.format(BOLD,
                                                        results.get("ichecking")[i],
@@ -236,12 +236,16 @@ def pack_markdownfeedback(filename, results):
                                                        NOPROBLEMIDENTIFIER) 
             vocabularywarnings += 1
     
-    if stylewarnings or codewarnings or vocabularywarnings:
+    #if stylewarnings or codewarnings or vocabularywarnings:
+    if vocabularywarnings:
         header = LBLUE + "# %s\n\n" % filename
-        report = LCYAN + "**%d Warning(s)** \n\n" % (stylewarnings + codewarnings + vocabularywarnings) + RESET
-        messages = codeline if codewarnings else ""
-        messages += styleline if stylewarnings else ""
-        messages += vocabularyline if vocabularywarnings else ""
+        #report = LCYAN + "**%d Warning(s)** \n\n" % (stylewarnings + codewarnings + vocabularywarnings) + RESET
+        report = LCYAN + "**%d Warning(s)** \n\n" % (vocabularywarnings) + RESET
+        #messages = codeline if codewarnings else ""
+        #messages += styleline if stylewarnings else ""
+        #messages += vocabularyline if vocabularywarnings else ""
+        messages = vocabularyline if vocabularywarnings else ""
+
         text = header + report + messages[:-1]
     else:
         text = LCYAN + "** %s **" % NOWARNINGS + RESET
