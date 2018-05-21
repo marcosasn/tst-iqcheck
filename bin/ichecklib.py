@@ -17,14 +17,14 @@ from fileinput import filename
 
 try:
     sys.path.append('/usr/local/bin/nltk/')
-    from nltk import wordpunct_tokenize
-    from nltk.corpus import wordnet
     from nltk.corpus import stopwords
-    from nltk.stem.lancaster import LancasterStemmer
     from nltk import RegexpTokenizer
 except ImportError:
     print("tst quality checker needs nltk to work.")
     sys.exit(1)
+
+# Settings
+LANGUAGE = 'portuguese'
 
 def get_studentidentifiers(filename):
     program = ast.parse(open(filename).read())  
@@ -32,6 +32,7 @@ def get_studentidentifiers(filename):
     for node in ast.walk(program):
         if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Load):
             names.append(node.id)
+    names = filter_stopwords(names, LANGUAGE)
     return list(set(names))
 
 def generate_problemvocabulary(problem_file):
@@ -103,6 +104,8 @@ def transform_steams(tokens_taged):
 
 def check_idwithuderscore(id, problem_vocabulary):
     ids = id.split('_')
+    ids = filter_stopwords(ids, LANGUAGE)
+
     count_idsfromproblem = 0
     for i in ids:
         if id_checking(i.lower(), problem_vocabulary):
@@ -128,10 +131,8 @@ def is_simpleid(id):
 
 def id_checking(id, problem_vocabulary):
     stemmer = nltk.stem.RSLPStemmer()
-    if len(id) < 2:
-        return False
     
-    elif id in problem_vocabulary:
+    if id in problem_vocabulary:
         return True
     
     elif stemmer.stem(id) in problem_vocabulary:

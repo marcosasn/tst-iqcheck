@@ -132,7 +132,7 @@ if [ $? != 0 ]; then
 fi
 
 # require nltk or abort
-RADON=$(command -v nltk)
+NLTK=$(command -v nltk)
 if [ $? != 0 ]; then
     print "\nQcheck requires nltk\n" $WARNING
     print "Get nltk and install it as superuser. Check: https://pypi.python.org/pypi/nltk.\n" $NORMAL
@@ -153,7 +153,7 @@ fi
 
 # identify releases url
 if [ "$DOWNLOAD_DEV_VERSION" == "true" ]; then
-    RELEASES_URL='https://api.github.com/repos/elianearaujo/tst-qcheck/releases'
+    RELEASES_URL=https:'//api.github.com/repos/marcosasn/tst-qcheck/releases'
     print "* fetching development pre-release information\n"
 else
     RELEASES_URL='https://api.github.com/repos/elianearaujo/tst-qcheck/releases/latest'
