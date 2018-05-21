@@ -153,12 +153,11 @@ fi
 
 # identify releases url
 if [ "$DOWNLOAD_DEV_VERSION" == "true" ]; then
-    RELEASES_URL=https:'//api.github.com/repos/marcosasn/tst-qcheck/releases'
+    RELEASES_URL='https://api.github.com/repos/marcosasn/tst-qcheck/releases'
     print "* fetching development pre-release information\n"
 else
-    RELEASES_URL='https://api.github.com/repos/elianearaujo/tst-qcheck/releases/latest'
+    RELEASES_URL='https://api.github.com/repos/marcosasn/tst-qcheck/releases/latest'
     print "* fetching latest release information\n"
-    
 fi
 
 # download releases info: identify tag_name and zipball_url
@@ -207,8 +206,8 @@ unzip -q qcheck.zip
 rm qcheck.zip
 
 # move files to TST_DIR
-mv elianearaujo-tst-qcheck*/bin/* $TST_DIR/bin/
-mv elianearaujo-tst-qcheck*/commands/* $TST_DIR/commands/
+mv marcosasn-tst-qcheck*/bin/* $TST_DIR/bin/
+mv marcosasn-tst-qcheck*/commands/* $TST_DIR/commands/
 
 chmod +x $TST_DIR/commands/tst-qcheck
 
@@ -233,11 +232,14 @@ fi
 mv cc.py $TST_DIR/bin/
 chmod +x $TST_DIR/bin/cc.py
 
+mv pycodestyle.py $TST_DIR/bin/
+chmod +x $TST_DIR/bin/pycodestyle.py
+
 # Move files to qcheck dir
 mkdir -p $TST_DIR/qcheck
-mv elianearaujo-tst-qcheck*/LICENSE $TST_DIR/qcheck/
-mv elianearaujo-tst-qcheck*/README.md $TST_DIR/qcheck/
-mv elianearaujo-tst-qcheck*/etc/* $TST_DIR/qcheck/
+mv marcosasn-tst-qcheck*/LICENSE $TST_DIR/qcheck/
+mv marcosasn-tst-qcheck*/README.md $TST_DIR/qcheck/
+mv marcosasn-tst-qcheck*/etc/* $TST_DIR/qcheck/
 
 # configure environment
 python $TST_DIR/qcheck/set_config.py
