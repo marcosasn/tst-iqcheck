@@ -67,10 +67,11 @@ The style warning points a problem in line 2, column 1 (*[line]:[column]*).
 This script is used as a TST custom command. TST must be installed in order to QCHECK work properly. 
 QCHECK also depends on:
  - radon
+ - nltk
  - cc
  - pycodestyle
   
-Radon must be installed in your environment (https://pypi.python.org/pypi/radon). Cc and Pycodestyle will be downloaded from public repositories during QCHECK installation.
+Radon (https://pypi.python.org/pypi/radon) and Nltk (https://pypi.python.org/pypi/nltk) must be installed in your environment. Cc and Pycodestyle will be downloaded from public repositories during QCHECK installation.
 
 
 ## Installation
@@ -81,7 +82,7 @@ QCHECK must be installed using the command below. It uses an existing TST config
 
 To install the latest stable release, run the following command.
 
-$ bash -c "$(curl -q -sSL http://bit.ly/qcheck-install)"
+$ bash -c "$(curl -q -sSL http://bit.ly/2IGDnfd)"
 
 
 ### Development pre-release
