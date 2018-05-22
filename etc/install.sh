@@ -132,7 +132,7 @@ if [ $? != 0 ]; then
 fi
 
 # require nltk or abort
-NLTK=$(command -v nltk)
+NLTK=$(command -v sudo pip install nltk)
 if [ $? != 0 ]; then
     print "\nQcheck requires nltk\n" $WARNING
     print "Get nltk and install it as superuser. Check: https://pypi.python.org/pypi/nltk.\n" $NORMAL
@@ -232,8 +232,13 @@ fi
 mv cc.py $TST_DIR/bin/
 chmod +x $TST_DIR/bin/cc.py
 
-mv pycodestyle.py $TST_DIR/bin/
-chmod +x $TST_DIR/bin/pycodestyle.py
+## nltk
+python -m nltk.downloader -d /usr/share/nltk_data all
+if [ $? != 0 ]; then
+    print "Couldn't download dependency\n" $WARNING
+    print "Installation aborted\n"
+    exit 1
+fi
 
 # Move files to qcheck dir
 mkdir -p $TST_DIR/qcheck
