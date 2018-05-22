@@ -32,7 +32,6 @@ def get_studentidentifiers(filename):
     for node in ast.walk(program):
         if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Load):
             names.append(node.id)
-    names = filter_stopwords(names, LANGUAGE)
     return list(set(names))
 
 def generate_problemvocabulary(problem_file):
@@ -127,7 +126,7 @@ def has_camelcase(id):
     return (id != id.lower() and id != id.upper())
 
 def is_simpleid(id):
-    return id == id.lower()
+    return id == id.lower() 
 
 def id_checking(id, problem_vocabulary):
     stemmer = nltk.stem.RSLPStemmer()
@@ -147,7 +146,6 @@ def id_checking(id, problem_vocabulary):
     return False
         
 def ichecking(problem_vocabulary, filename):
-    stemmer = nltk.stem.RSLPStemmer()
     student_vocabulary = get_studentidentifiers(filename)
     came_notfromproblem = []
 
