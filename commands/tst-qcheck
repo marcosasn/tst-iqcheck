@@ -498,7 +498,6 @@ def main():
             
         elif function in ('set'): 
             # set reference solution file
-            results = get_rawmetrics(filenames)
                         
             problem_file = glob.glob('*.yaml')
             if not problem_file:
@@ -509,8 +508,9 @@ def main():
                 sys.exit()
             problem_vocabulary = get_problemvocabulary(problem_file[0])
             
-            write_results(results, QCHECKFILE)
             write_problem_vocabulary(problem_vocabulary, QCHECKFILE)
+            results = get_rawmetrics(filenames)
+            write_results(results, QCHECKFILE)
             report = QCHECKFILE + " was created."
 
         elif function in ('feedback'): 
