@@ -31,18 +31,18 @@ positional arguments:
 
 optional arguments:
   -h, --help,        show this help message and exit
-  -m METRICS,        get values of cc, header, lloc, pep8, vhalstead
-  -f FEEDBACK,       present warning messages referring to static quality metrics
-  -p PROF,           get values of cc, header, lloc, pep8, vhalstead referring to a given pattern or file(s)
+  -m METRICS,        get values of cc, header, lloc, pep8, vhalstead and icheckscore
+  -f FEEDBACK,       present warning messages referring to static quality metrics and identifiers
+  -p PROF,           get values of cc, header, lloc, pep8, vhalstead and icheckscore referring to a given pattern or file(s)
   -s SET,            set reference code
   -o {human,json},   set output format
 ```
 
 ### Messages
 
-QCHECK produces warning messages that give hints about **code** (programming solution to the problem) and **style** (Python coding standards).
+QCHECK produces warning messages that give hints about **code** (programming solution to the problem), **style** (Python coding standards) and **vocabulary** (programming solution identifiers).
 
-Warning messages about code quality are based on well-known quality software metrics and other requirements. Style hints are based on PEP8 - Python community canonical style guide.
+Warning messages about code quality are based on well-known quality software metrics and other requirements. Style hints are based on PEP8 - Python community canonical style guide. Vocabulary messages are based on the problem specification terms.
 
 ### Example
 ```
@@ -82,7 +82,6 @@ QCHECK must be installed using the command below. It uses an existing TST config
 
 To install the latest stable release, run the following command.
 
-$ bash -c "$(curl -q -sSL http://bit.ly/2IGDnfd)"
-
+$ bash -c "$(curl -q -sSL http://bit.ly/2xbErXh)"
 
 ### Development pre-release
