@@ -1,0 +1,142 @@
+name: linger
+label: linger
+type: problem
+text: |
+    # Jogo de Tabuleiro - Linger
+    Linger é um jogo de tabuleiro em que dois jogadores se enfrentam para conquistar o maior número de pontos. Os jogadores são representados por xis **x** e bola **o**. O tabuleiro do jogo é um quadrado de lado **n**. As regras do jogo são complexas, e não trataremos delas aqui. 
+
+    Entretanto, para determinar qual jogador ganhou ou se houve empate basta contar os pontos: a quantidade de ocorrências de **x** ou **o** no tabuleiro. Quem tiver mais pontos, ganha.
+
+    Pede-se que você escreva um programa que, dado um tabuleiro _Linger_ válido, verifique e informe quem ganhou e com quantos pontos ou se houve empate.
+    
+    ## Entrada 
+    O programa deve ler da primeira linha da entrada um número **n**, maior que 1, que representa o tamanho do lado do tabuleiro. Em seguida, receberá as linhas contendo o símbolo que existe em cada casa do tabuleiro. Assuma que apenas **x** e **o** serão informados no conteúdo das linhas do tabuleiro.
+    
+    ## Saída
+    Deve apresentar uma mensagem informando qual jogador foi o vencedor, a quantidade de pontos feita ou se houve um empate. Caso o tabuleiro informado pelo usuário seja inválido (quando há uma linha maior ou menor que o lado **n**), o programa deve emitir uma mensagem. 
+    
+    Observe os exemplos de entrada e saída.
+        
+    ## Exemplo de execução
+        $ python linger.py
+        2
+        xx
+        xo
+        Xis ganhou com 3 pontos.
+
+        $ python linger.py
+        3
+        ooo
+        xxx
+        ooo
+        Bola ganhou com 6 pontos.
+
+        $ python linger.py
+        5
+        oo
+        Tabuleiro inválido.
+
+        $ python linger.py
+        2
+        oo
+        xx
+        Empate em 2 pontos.
+
+tests:
+-   category: public
+    name: xis
+    input: |
+        2
+        xx
+        xo
+    output: |
+        Xis ganhou com 3 pontos.
+-   category: public
+    name: bola_inicio
+    input: |
+        3
+        ooo
+        xxx
+        ooo
+    output: |
+        Bola ganhou com 6 pontos.
+-   category: public
+    name: invalido
+    input: |
+        2
+        oo
+        xxx
+    output: |
+        Tabuleiro inválido.
+-   category: public
+    name: bola_meio
+    input: |
+        5
+        xxxxx
+        ooooo
+        ooooo
+        ooooo
+        xxxxx
+    output: |
+        Bola ganhou com 15 pontos.
+-   category: public
+    name: empate
+    input: |
+        2
+        xx
+        oo
+    output: |
+        Empate em 2 pontos.
+
+-   category: secret
+    name: invalido_primeiro
+    input: |
+        5
+        xx 
+    output: |
+        Tabuleiro inválido.
+-   category: secret
+    name: invalido_ultimo
+    input: |
+        4
+        xxxx
+        xxxx
+        xxxx
+        x
+    output: |
+        Tabuleiro inválido.
+-   category: secret
+    name: xis_inicio
+    input: |
+        5
+        xxxxx
+        xxxxx
+        ooooo
+        ooooo
+        xxxxx
+    output: |
+        Xis ganhou com 15 pontos.
+-   category: secret
+    name: tabuleiro_grande
+    input: |
+        10
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+    output: |
+        Xis ganhou com 100 pontos.
+-   category: secret
+    name: tabuleiro_pequeno
+    input: |
+        2
+        oo
+        ox
+    output: |
+        Bola ganhou com 3 pontos.
