@@ -133,7 +133,6 @@ fi
 
 # require nltk or abort
 NLTK=$(python -c "import nltk;")
-print $? 
 if [ $? != 0 ]; then
     print "\nQcheck requires nltk\n" $WARNING
     print "Get nltk and install it as superuser. Check: https://pypi.python.org/pypi/nltk.\n" $NORMAL
