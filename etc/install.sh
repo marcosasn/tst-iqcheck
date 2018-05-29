@@ -136,7 +136,7 @@ NLTK=$(python -c "import nltk;" 2> /dev/null)
 if [ $? != 0 ]; then
     print "\nQcheck requires nltk\n" $WARNING
     print "Get nltk and install it as superuser. Check: https://pypi.python.org/pypi/nltk.\n" $NORMAL
-    print "* Tip: sudo pip install -u nltk\n" $IMPORTANT
+    print "* Tip: sudo pip install nltk\n" $IMPORTANT
     print "\nDon't have pip either?\n" $NORMAL
     print "* Tip: sudo apt-get install python-pip\n" $IMPORTANT
     print "\nAborting installation\n" $NORMAL
@@ -232,9 +232,9 @@ fi
 mv cc.py $TST_DIR/bin/
 chmod +x $TST_DIR/bin/cc.py
 
+print "* installing nltk data\n"
 ## nltk
 python -m nltk.downloader all 1> /dev/null
-print $?
 if [ $? != 0 ]; then
     print "Couldn't download dependency\n" $WARNING
     print "Installation aborted\n"
