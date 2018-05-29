@@ -132,7 +132,8 @@ if [ $? != 0 ]; then
 fi
 
 # require nltk or abort
-NLTK=$(command -v python -c "import nltk;")
+NLTK=$(python -c "import nltk;")
+print $? 
 if [ $? != 0 ]; then
     print "\nQcheck requires nltk\n" $WARNING
     print "Get nltk and install it as superuser. Check: https://pypi.python.org/pypi/nltk.\n" $NORMAL
@@ -233,13 +234,13 @@ mv cc.py $TST_DIR/bin/
 chmod +x $TST_DIR/bin/cc.py
 
 ## nltk
-python -m nltk.downloader -d /usr/share/nltk_data all 1> /dev/null
+python -m nltk.downloader all 1> /dev/null
+print $?
 if [ $? != 0 ]; then
     print "Couldn't download dependency\n" $WARNING
     print "Installation aborted\n"
     exit 1
 fi
-chmod +x /usr/share/nltk_data
 
 # Move files to qcheck dir
 mkdir -p $TST_DIR/qcheck
