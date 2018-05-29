@@ -38,8 +38,8 @@ def generate_problemvocabulary(problem_file):
     with codecs.open(problem_file, mode='r', encoding='utf-8') as fp:
         problem_file = yaml.load(fp)
     
-    problem = problem_file["text"].lower()
-    delimiters = ['\n', '_', '**', '$', '#', '##']
+    problem = problem_file["text"].lower().replace('\n', ' ')
+    delimiters = ['r$','%','*','**','$','#','##','_','(',')']
     
     for delimiter in delimiters:
         problem = problem.replace(delimiter, '')
@@ -53,10 +53,14 @@ def tokenize_text(problem):
     #Removing pontuaction and numbers
     is_wordwithrepeatedletters = lambda t: not re.compile(r'([a-z])\1+').match(t)
     is_fileextension = lambda t: not t.endswith('py')
-    
+    is_shortword = lambda t: not len(t) <= 2
+    is_meaningless = lambda t: not t in ('python','programa','voce','usuario','obs')
+    filters = [is_wordwithrepeatedletters, is_fileextension, is_shortword, is_meaningless]
+
     tokens = RegexpTokenizer(r'[a-zA-Z]\w+').tokenize(problem)
-    tokens = filter(is_wordwithrepeatedletters, tokens)
-    tokens = filter(is_fileextension, tokens)
+    for fun in filters:
+        tokens = filter(fun, tokens)
+
     return list(set(tokens))
     
 def filter_stopwords(tokens, language):
@@ -169,7 +173,7 @@ def ichecking(problem_vocabulary, filename):
 def icheckscore(problem_vocabulary, filename):
     student_vocabulary = get_studentidentifiers(filename)
     come_notproblemvocabulary = ichecking(problem_vocabulary, filename)
-    return (len(student_vocabulary)-len(come_notproblemvocabulary))/float(len(student_vocabulary))
+    return round((len(student_vocabulary)-len(come_notproblemvocabulary))/float(len(student_vocabulary)), 2) 
 
 def save(message):
     type_ = 'accept'

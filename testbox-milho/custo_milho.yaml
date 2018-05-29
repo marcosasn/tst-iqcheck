@@ -1,0 +1,143 @@
+name: custo_milho
+label: milho
+type: problem
+text: |
+    # Milho para o São João
+    Com o bom inverno de 2017, os agricultores estão vendendo a mão de milho por *R$ 30,00* para os comerciantes. Na feira grande, os comerciantes vendem mais caro para os consumidores e o preço varia conforme a quantidade de espigas a ser comprada.
+    O preço da espiga na feira, para o consumidor que for adquirir menos que meia mão de milho, é *50%* a mais do que o custo da espiga no campo. Entre meia e uma mão de milho (inclusive) o preço da espiga é *30%* a mais do que o seu custo. Acima de uma mão de milho o preço da espiga sai por *20%* a mais do que o seu custo.
+
+    Pede-se que você escreva um programa que calcula o preço que o consumidor pagará por uma certa quantidade de milho comprada na feira.
+
+    *Obs: Uma mão de milho contém 50 espigas.
+
+    ## Entrada
+    O programa deve ler da primeira linha da entrada a quantidade de espigas de milho que se deseja comprar. Esta quantidade será sempre um número natural maior que zero.
+
+    ## Saída
+    Na saída, deve imprimir o valor a ser pago pelo consumidor para a quantidade de espigas a ser comprada.
+
+    Observe os exemplos de entrada e saída. Por simplicidade, o preço em reais deve ser expresso com duas casas decimais e com \".\" (ponto).
+
+    ## Exemplo de execução
+        $ python milho.py
+        30
+        O comprador deve pagar R$23.40 por 30 espiga(s) de milho.
+
+        $ python milho.py
+        1
+        O comprador deve pagar R$0.90 por 1 espiga(s) de milho.
+
+        $ python milho.py
+        30
+        O comprador deve pagar R$23.40 por 30 espiga(s) de milho.
+
+        $ python milho.py
+        100
+        O comprador deve pagar R$72.00 por 100 espiga(s) de milho.
+
+        $ python milho.py
+        25
+        O comprador deve pagar R$19.50 por 25 espiga(s) de milho.
+
+        $ python milho.py
+        50
+        O comprador deve pagar R$39.00 por 50 espiga(s) de milho.
+
+tests:
+-   category: public
+    name: xis
+    input: |
+        2
+        xx
+        xo
+    output: |
+        Xis ganhou com 3 pontos.
+-   category: public
+    name: bola_inicio
+    input: |
+        3
+        ooo
+        xxx
+        ooo
+    output: |
+        Bola ganhou com 6 pontos.
+-   category: public
+    name: invalido
+    input: |
+        2
+        oo
+        xxx
+    output: |
+        Tabuleiro inválido.
+-   category: public
+    name: bola_meio
+    input: |
+        5
+        xxxxx
+        ooooo
+        ooooo
+        ooooo
+        xxxxx
+    output: |
+        Bola ganhou com 15 pontos.
+-   category: public
+    name: empate
+    input: |
+        2
+        xx
+        oo
+    output: |
+        Empate em 2 pontos.
+
+-   category: secret
+    name: invalido_primeiro
+    input: |
+        5
+        xx 
+    output: |
+        Tabuleiro inválido.
+-   category: secret
+    name: invalido_ultimo
+    input: |
+        4
+        xxxx
+        xxxx
+        xxxx
+        x
+    output: |
+        Tabuleiro inválido.
+-   category: secret
+    name: xis_inicio
+    input: |
+        5
+        xxxxx
+        xxxxx
+        ooooo
+        ooooo
+        xxxxx
+    output: |
+        Xis ganhou com 15 pontos.
+-   category: secret
+    name: tabuleiro_grande
+    input: |
+        10
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+        xxxxxxxxxx
+    output: |
+        Xis ganhou com 100 pontos.
+-   category: secret
+    name: tabuleiro_pequeno
+    input: |
+        2
+        oo
+        ox
+    output: |
+        Bola ganhou com 3 pontos.
