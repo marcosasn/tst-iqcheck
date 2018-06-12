@@ -13,6 +13,7 @@ import yaml
 import codecs
 import ast
 import re
+import __builtin__
 from fileinput import filename
 
 try:
@@ -30,9 +31,20 @@ def get_studentidentifiers(filename):
     program = ast.parse(open(filename).read())  
     names = []
     for node in ast.walk(program):
-        if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Load):
-            names.append(node.id)
-    return list(set(names))
+        if isinstance(node, ast.Name):
+            try:
+                getattr(__builtin__, node.id)                    
+            except AttributeError:
+                names.append(node.id)
+        elif isinstance(node, ast.FunctionDef):
+            args = node.args.args
+            for arg in args:
+                try:
+                    getattr(__builtin__, arg.id)
+                except AttributeError:
+                    names.append(arg.id)
+
+    return names
 
 def generate_problemvocabulary(problem_file):
     with codecs.open(problem_file, mode='r', encoding='utf-8') as fp:
@@ -150,7 +162,7 @@ def id_checking(id, problem_vocabulary):
     return False
         
 def ichecking(problem_vocabulary, filename):
-    student_vocabulary = get_studentidentifiers(filename)
+    student_vocabulary = list(set(get_studentidentifiers(filename)))
     came_notfromproblem = []
 
     for id in student_vocabulary:
