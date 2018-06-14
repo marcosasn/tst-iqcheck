@@ -27,23 +27,26 @@ except ImportError:
 # Settings
 LANGUAGE = 'portuguese'
 
+def is_builtinfunction(name):
+    try:
+        getattr(__builtin__, name)
+    except AttributeError:
+        if AttributeError:
+            return False
+    return True 
+
 def get_studentidentifiers(filename):
     program = ast.parse(open(filename).read())  
     names = []
     for node in ast.walk(program):
         if isinstance(node, ast.Name):
-            try:
-                getattr(__builtin__, node.id)                    
-            except AttributeError:
+            if not is_builtinfunction(node.id):
                 names.append(node.id)
         elif isinstance(node, ast.FunctionDef):
             args = node.args.args
             for arg in args:
-                try:
-                    getattr(__builtin__, arg.id)
-                except AttributeError:
+                if not is_builtinfunction(arg.id):
                     names.append(arg.id)
-
     return names
 
 def generate_problemvocabulary(problem_file):
