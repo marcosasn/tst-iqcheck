@@ -36,7 +36,7 @@ SHORTHEADER = "Your program header is too short."
 HIGHLLOC = "Your program has too many lines of code."
 HIGHCC = "Your program has too many decision points."
 HIGHVHALSTEAD = "Your program has too many operations (Example: +,-,==, etc)."
-NOREFERENCE = "There are no reference values."
+NOREFERENCE = "There are no values or reference terms."
 NOPROBLEMIDENTIFIER = "appears to not reflect the problem specification."
 NOWARNINGS = "No warnings. Congratulations!"
 
