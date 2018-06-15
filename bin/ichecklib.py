@@ -20,6 +20,7 @@ try:
     sys.path.append('/usr/local/bin/nltk/')
     from nltk.corpus import stopwords
     from nltk import RegexpTokenizer
+    from nltk.tokenize import word_tokenize
 except ImportError:
     print("tst quality checker needs nltk to work.")
     sys.exit(1)
@@ -54,25 +55,35 @@ def generate_problemvocabulary(problem_file):
         problem_file = yaml.load(fp)
     
     problem = problem_file["text"].lower().replace('\n', ' ')
-    delimiters = ['r$','%','*','**','$','#','##','_','(',')']
+    delimiters = ['r$','%','*','**','$','#','##','_','(',')', '.','-se','`','`','<','>','/']
     
     for delimiter in delimiters:
-        problem = problem.replace(delimiter, '')
+        if delimiter in ('/','<','>'):
+            problem = problem.replace(delimiter, ' ')
+        else:
+            problem = problem.replace(delimiter, '')
     
     tokens = filter_stopwords(tokenize_text(problem), detect_language(problem))
     tokens_taged = nltk.pos_tag(tokens)
-    vocabulary = transform_steams(tokens_taged)    
-    return [unidecode.unidecode(word) for word in vocabulary]
+    vocabulary = transform_steams(tokens_taged) 
+    return vocabulary
 
 def tokenize_text(problem):
     #Removing pontuaction and numbers
     is_wordwithrepeatedletters = lambda t: not re.compile(r'([a-z])\1+').match(t)
+    is_number = lambda t: not re.compile(r'([0-9])').match(t)
+    is_wordfollowedbynumbers = lambda t: not re.compile(r'([a-z]+[0-9]+)').match(t)
     is_fileextension = lambda t: not t.endswith('py')
     is_shortword = lambda t: not len(t) <= 2
     is_meaningless = lambda t: not t in ('python','programa','voce','usuario','obs')
-    filters = [is_wordwithrepeatedletters, is_fileextension, is_shortword, is_meaningless]
+    is_htmlformat = lambda t: not re.compile(r'(/[a-z])').match(t)
+    is_htmltable = lambda t: not re.compile(r'([a-z])').match(t)
+    
+    filters = [is_wordwithrepeatedletters, is_number, is_wordfollowedbynumbers, is_fileextension, is_shortword, is_meaningless, is_htmlformat]
 
-    tokens = RegexpTokenizer(r'[a-zA-Z]\w+').tokenize(problem)
+    tokens = word_tokenize(problem)
+    tokens = [unidecode.unidecode(token) for token in tokens]
+    
     for fun in filters:
         tokens = filter(fun, tokens)
 
@@ -118,7 +129,7 @@ def transform_steams(tokens_taged):
             vocabulary.append(stemmer.stem(word))
         elif is_noun(pos):
             vocabulary.append(word)
-    return vocabulary
+    return list(set(vocabulary))
 
 def check_idwithuderscore(id, problem_vocabulary):
     ids = id.split('_')
