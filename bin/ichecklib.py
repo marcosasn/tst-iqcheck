@@ -19,7 +19,6 @@ from fileinput import filename
 try:
     sys.path.append('/usr/local/bin/nltk/')
     from nltk.corpus import stopwords
-    from nltk import RegexpTokenizer
     from nltk.tokenize import word_tokenize
 except ImportError:
     print("tst quality checker needs nltk to work.")
@@ -77,7 +76,6 @@ def tokenize_text(problem):
     is_shortword = lambda t: not len(t) <= 2
     is_meaningless = lambda t: not t in ('python','programa','voce','usuario','obs')
     is_htmlformat = lambda t: not re.compile(r'(/[a-z])').match(t)
-    is_htmltable = lambda t: not re.compile(r'([a-z])').match(t)
     
     filters = [is_wordwithrepeatedletters, is_number, is_wordfollowedbynumbers, is_fileextension, is_shortword, is_meaningless, is_htmlformat]
 
