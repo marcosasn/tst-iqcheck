@@ -39,7 +39,8 @@ HIGHVHALSTEAD = "Your program has too many operations (Example: +,-,==, etc)."
 NOREFERENCE = "There are no values or reference terms."
 #NOPROBLEMIDENTIFIER = "appears to not reflect the problem specification."
 NOTPROPERIDENTIFIER = "não parece ser um nome adequado. Use nomes da descrição da atividade."
-NOWARNINGS = "No warnings. Congratulations!"
+#NOWARNINGS = "No warnings. Congratulations!"
+NOWARNINGS = "Nenhuma advertência. Parabéns!"
 
 # Output Settings
 COLNUMBERWIDTH = 5
