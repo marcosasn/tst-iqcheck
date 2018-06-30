@@ -37,7 +37,8 @@ HIGHLLOC = "Your program has too many lines of code."
 HIGHCC = "Your program has too many decision points."
 HIGHVHALSTEAD = "Your program has too many operations (Example: +,-,==, etc)."
 NOREFERENCE = "There are no values or reference terms."
-NOPROBLEMIDENTIFIER = "appears to not reflect the problem specification."
+#NOPROBLEMIDENTIFIER = "appears to not reflect the problem specification."
+NOTPROPERIDENTIFIER = "não parece ser um nome adequado. Use nomes da descrição da atividade."
 NOWARNINGS = "No warnings. Congratulations!"
 
 # Output Settings
@@ -145,7 +146,10 @@ def get_metrics(filename):
         "vhalstead": qchecklib.vhalstead(filename),
         "pep8": qchecklib.pep8(filename),
         "header": qchecklib.header_lines(filename),
-        "ichecking": ichecklib.ichecking(get_problem_vocabulary(), filename)
+        "ichecking": ichecklib.ichecking(get_problem_vocabulary(), filename),
+        "positives": ichecklib.get_positives(get_problem_vocabulary(), filename),
+        "negatives": ichecklib.get_negatives(get_problem_vocabulary(), filename),
+        "code": ichecklib.get_code()
     }
     return results
 
@@ -199,7 +203,8 @@ def pack_logfeedback(results):
 def pack_markdownfeedback(filename, results):
     codeline = "### Code\n"
     styleline = "### Style\n"
-    vocabularyline = "### Vocabulary\n"
+    #vocabularyline = "### Vocabulary\n"
+    vocabularyline = "### Nomes\n"
 
     codewarnings, stylewarnings, vocabularywarnings = 0, 0, 0
     
@@ -233,14 +238,14 @@ def pack_markdownfeedback(filename, results):
             vocabularyline += '- {}*{}*{} {}\n'.format(BOLD,
                                                        results.get("ichecking")[i],
                                                        RESET,
-                                                       NOPROBLEMIDENTIFIER) 
+                                                       NOTPROPERIDENTIFIER) 
             vocabularywarnings += 1
     
     #if stylewarnings or codewarnings or vocabularywarnings:
     if vocabularywarnings:
         header = LBLUE + "# %s\n\n" % filename
         #report = LCYAN + "**%d Warning(s)** \n\n" % (stylewarnings + codewarnings + vocabularywarnings) + RESET
-        report = LCYAN + "**%d Warning(s)** \n\n" % (vocabularywarnings) + RESET
+        report = LCYAN + "**%d Advertência(s)** \n\n" % (vocabularywarnings) + RESET
         #messages = codeline if codewarnings else ""
         #messages += styleline if stylewarnings else ""
         #messages += vocabularyline if vocabularywarnings else ""
@@ -518,14 +523,14 @@ def main():
             if not get_refmetrics():
                 report = NOREFERENCE
             else:
-                results = quality_report( get_metrics(filenames) )
+                results = quality_report(get_metrics(filenames))
                 report = pack_results(results) if outputformat == 'json' else pack_markdownfeedback(filenames, results)
                 logit = get_logdata(filenames, pack_logfeedback(results))
                 
         elif function in ('prof'):
             setofcode = sorted(get_filestocheck(filenames))
             if not setofcode:
-                print( "qcheck: nothing to check.")
+                print("qcheck: nothing to check.")
                 sys.exit()
             results = []
             for code in setofcode:
@@ -535,7 +540,7 @@ def main():
         print report
         ### Is log active?
         if logit:
-            qchecklib.save(logit)
+            ichecklib.save(logit)
             
     except IOError:
         print("Usage: tst qcheck [options] code.py")

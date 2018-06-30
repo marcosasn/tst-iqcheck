@@ -26,6 +26,7 @@ except ImportError:
 
 # Settings
 LANGUAGE = 'portuguese'
+url = 'https://us-central1-qichecklog.cloudfunctions.net/logIt'
 
 def is_builtinfunction(name):
     try:
@@ -33,7 +34,35 @@ def is_builtinfunction(name):
     except AttributeError:
         if AttributeError:
             return False
-    return True 
+    return True
+
+def get_code(filename):
+    program = open(filename).read()
+    return program
+
+def get_positives(problem_vocabulary, filename):
+    student_vocabulary = list(set(get_studentidentifiers(filename)))
+    came_fromproblem = []
+
+    for id in student_vocabulary:
+        is_fromproblem = False
+        
+        if has_underscore(id):
+            is_fromproblem = check_idwithuderscore(id, problem_vocabulary)
+            
+        elif has_camelcase(id):
+            is_fromproblem = check_idwithcamelcase(id, problem_vocabulary)
+               
+        elif is_simpleid(id):
+            is_fromproblem = id_checking(id.lower(), problem_vocabulary)
+        
+        if is_fromproblem:
+            came_fromproblem.append(id)
+
+    return came_fromproblem
+
+def get_negatives(problem_vocabulary, filename):
+    return ichecking(problem_vocabulary, filename)
 
 def get_studentidentifiers(filename):
     program = ast.parse(open(filename).read())  
