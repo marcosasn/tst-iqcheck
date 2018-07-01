@@ -24,6 +24,11 @@ except ImportError:
     print("tst quality checker needs nltk to work.")
     sys.exit(1)
 
+try:
+   import urllib.request as urlrequest
+except ImportError:
+   import urllib as urlrequest
+
 # Settings
 LANGUAGE = 'portuguese'
 url = 'https://us-central1-qichecklog.cloudfunctions.net/logIt'

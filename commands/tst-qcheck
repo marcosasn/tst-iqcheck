@@ -16,19 +16,14 @@ import json
 import codecs
 import glob
 import argparse
-
 import qchecklib
 import tstlib
-
-##################
 import os.path
 
 #soluction provided by https://stackoverflow.com/questions/7587457/importerror-no-module-named-python
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import bin
 from bin import ichecklib
-##################
-
 from fileinput import filename
 
 # Feedback Messages
