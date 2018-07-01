@@ -45,7 +45,7 @@ def is_builtinfunction(name):
 def get_code(filename):
     with codecs.open(filename, mode='r', encoding='utf-8') as fp:
         code = fp.read()
-    return code
+    return {'data': code}
 
     #program = ""
     #with codecs.open(filename, mode='r', encoding='utf-8') as fp:
