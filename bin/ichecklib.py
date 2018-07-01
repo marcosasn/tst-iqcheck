@@ -236,7 +236,7 @@ def icheckscore(problem_vocabulary, filename):
 
 def save(message):
     message = json.dumps(message)
-    urllib.urlopen(url % message)
+    urlrequest.urlopen(url % message)
     
 if __name__ == '__main__':
   print("ichecking is a helper module for tst_qcheck commands")
