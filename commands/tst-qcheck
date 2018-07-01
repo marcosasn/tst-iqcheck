@@ -175,8 +175,8 @@ def get_logdata(filenames, output):
     content = { "filename": filenames, "report": output }
     content["iid"] = get_activityid()
     content["user"] = get_username()
-    content["positives"] = ichecklib.get_positives(get_problem_vocabulary(), filenames),
-    content["negatives"] = ichecklib.get_negatives(get_problem_vocabulary(), filenames),
+    content["positives"] = ichecklib.get_positives(get_problem_vocabulary(), filenames)
+    content["negatives"] = ichecklib.get_negatives(get_problem_vocabulary(), filenames)
     content["code"] = ichecklib.get_code(filenames)
     return tstlib.data2json(content)
     
