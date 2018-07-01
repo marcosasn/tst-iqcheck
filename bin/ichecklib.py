@@ -31,7 +31,7 @@ except ImportError:
 
 # Settings
 LANGUAGE = 'portuguese'
-url = 'https://us-central1-qichecklog.cloudfunctions.net/logit'
+url = 'https://us-central1-qichecklog.cloudfunctions.net/logit?accept=%s'
 
 def is_builtinfunction(name):
     try:
@@ -235,8 +235,8 @@ def icheckscore(problem_vocabulary, filename):
     return round((len(student_vocabulary)-len(come_notproblemvocabulary))/float(len(student_vocabulary)), 2) 
 
 def save(message):
-    type_ = 'accept'
-    urlrequest.urlopen(url + type_, data=json.dumps(message))
+    message = json.dumps(message)
+    urllib.urlopen(url % message)
     
 if __name__ == '__main__':
   print("ichecking is a helper module for tst_qcheck commands")
