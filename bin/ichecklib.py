@@ -8,6 +8,7 @@ import sys
 import commands
 import json
 import nltk
+import tstlib
 import unidecode
 import yaml
 import codecs
@@ -43,8 +44,8 @@ def is_builtinfunction(name):
 
 def get_code(filename):
     with codecs.open(filename, mode='r', encoding='utf-8') as fp:
-        program = fp.read()
-    return str(program)
+        program = tstlib.to_unicode(fp.read())
+    return program
 
 def get_positives(problem_vocabulary, filename):
     student_vocabulary = list(set(get_studentidentifiers(filename)))
