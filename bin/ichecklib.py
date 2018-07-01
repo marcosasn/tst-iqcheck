@@ -43,11 +43,15 @@ def is_builtinfunction(name):
     return True
 
 def get_code(filename):
-    program = ""
     with codecs.open(filename, mode='r', encoding='utf-8') as fp:
-        for line in fp.readlines():
-            program += "%s" % tstlib.to_unicode(line)
-    return program
+        code = fp.read()
+    return code
+
+    #program = ""
+    #with codecs.open(filename, mode='r', encoding='utf-8') as fp:
+    #    for line in fp.readlines():
+    #        program += "%s" % tstlib.to_unicode(line)
+    #return program
 
 def get_positives(problem_vocabulary, filename):
     student_vocabulary = list(set(get_studentidentifiers(filename)))
