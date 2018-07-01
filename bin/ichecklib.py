@@ -44,7 +44,7 @@ def is_builtinfunction(name):
 def get_code(filename):
     with codecs.open(filename, mode='r', encoding='utf-8') as fp:
         program = fp.read()
-    return program
+    return str(program)
 
 def get_positives(problem_vocabulary, filename):
     student_vocabulary = list(set(get_studentidentifiers(filename)))
