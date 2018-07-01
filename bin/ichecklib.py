@@ -43,8 +43,10 @@ def is_builtinfunction(name):
     return True
 
 def get_code(filename):
+    program = ""
     with codecs.open(filename, mode='r', encoding='utf-8') as fp:
-        program = tstlib.to_unicode(fp.read())
+        for line in fp.readlines():
+            program += "%s" % tstlib.to_unicode(line)
     return program
 
 def get_positives(problem_vocabulary, filename):
