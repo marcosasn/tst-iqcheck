@@ -135,12 +135,6 @@ def get_problem_vocabulary():
     else:
         return {}
 
-def append_furtherinfo(logit, filename):
-    logit["positives"] = ichecklib.get_positives(get_problem_vocabulary(), filename),
-    logit["negatives"] = ichecklib.get_negatives(get_problem_vocabulary(), filename),
-    logit["code"] = ichecklib.get_code(filename)
-    return tstlib.data2json(logit)
-
 def get_metrics(filename):
     results = {
         "lloc": qchecklib.lloc(filename),
@@ -181,6 +175,9 @@ def get_logdata(filenames, output):
     content = { "filename": filenames, "report": output }
     content["iid"] = get_activityid()
     content["user"] = get_username()
+    content["positives"] = ichecklib.get_positives(get_problem_vocabulary(), filenames),
+    content["negatives"] = ichecklib.get_negatives(get_problem_vocabulary(), filenames),
+    content["code"] = ichecklib.get_code(filenames)
     return tstlib.data2json(content)
     
 def pack_logfeedback(results):
@@ -525,7 +522,6 @@ def main():
                 results = quality_report(get_metrics(filenames))
                 report = pack_results(results) if outputformat == 'json' else pack_markdownfeedback(filenames, results)
                 logit = get_logdata(filenames, pack_logfeedback(results))
-                logit = append_furtherinfo(logit, filenames)
                 
         elif function in ('prof'):
             setofcode = sorted(get_filestocheck(filenames))
