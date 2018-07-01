@@ -42,7 +42,8 @@ def is_builtinfunction(name):
     return True
 
 def get_code(filename):
-    program = open(filename).read()
+    with codecs.open(filename, mode='r', encoding='utf-8') as fp:
+        program = fp.read()
     return program
 
 def get_positives(problem_vocabulary, filename):
