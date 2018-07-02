@@ -33,9 +33,9 @@ HIGHCC = "Your program has too many decision points."
 HIGHVHALSTEAD = "Your program has too many operations (Example: +,-,==, etc)."
 NOREFERENCE = "There are no values or reference terms."
 #NOPROBLEMIDENTIFIER = "appears to not reflect the problem specification."
-NOTPROPERIDENTIFIER = "não parece ser um nome adequado. Use nomes da descrição da atividade."
+NOTPROPERIDENTIFIER = "nao parece ser um nome adequado. Use nomes da descricao da atividade."
 #NOWARNINGS = "No warnings. Congratulations!"
-NOWARNINGS = "Nenhuma advertência. Parabéns!"
+NOWARNINGS = "Nenhuma advertencia. Parabens!"
 
 # Output Settings
 COLNUMBERWIDTH = 5
@@ -241,7 +241,7 @@ def pack_markdownfeedback(filename, results):
     if vocabularywarnings:
         header = LBLUE + "# %s\n\n" % filename
         #report = LCYAN + "**%d Warning(s)** \n\n" % (stylewarnings + codewarnings + vocabularywarnings) + RESET
-        report = LCYAN + "**%d Advertência(s)** \n\n" % (vocabularywarnings) + RESET
+        report = LCYAN + "**%d Advertencia(s)** \n\n" % (vocabularywarnings) + RESET
         #messages = codeline if codewarnings else ""
         #messages += styleline if stylewarnings else ""
         #messages += vocabularyline if vocabularywarnings else ""
