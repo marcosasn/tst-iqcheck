@@ -33,7 +33,7 @@ HIGHCC = "Your program has too many decision points."
 HIGHVHALSTEAD = "Your program has too many operations (Example: +,-,==, etc)."
 NOREFERENCE = "There are no values or reference terms."
 #NOPROBLEMIDENTIFIER = "appears to not reflect the problem specification."
-NOTPROPERIDENTIFIER = "nao parece ser um nome adequado. Use nomes da descricao da atividade."
+NOTPROPERIDENTIFIER = "nao parece ser um nome adequado. Use palavras da descricao da atividade."
 #NOWARNINGS = "No warnings. Congratulations!"
 NOWARNINGS = "Nenhuma advertencia. Parabens!"
 
