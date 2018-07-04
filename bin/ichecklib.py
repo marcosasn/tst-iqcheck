@@ -30,9 +30,8 @@ try:
 except ImportError:
    import urllib as urlrequest
 
-# Settings
+#Settings
 LANGUAGE = 'portuguese'
-url = 'https://us-central1-qichecklog.cloudfunctions.net/logit?accept=%s'
 
 def is_builtinfunction(name):
     try:
@@ -41,17 +40,6 @@ def is_builtinfunction(name):
         if AttributeError:
             return False
     return True
-
-def get_code(filename):
-    with codecs.open(filename, mode='r', encoding='utf-8') as fp:
-        code = fp.read()
-    return {'data': code}
-
-    #program = ""
-    #with codecs.open(filename, mode='r', encoding='utf-8') as fp:
-    #    for line in fp.readlines():
-    #        program += "%s" % tstlib.to_unicode(line)
-    #return program
 
 def get_positives(problem_vocabulary, filename):
     student_vocabulary = list(set(get_studentidentifiers(filename)))
@@ -243,8 +231,15 @@ def icheckscore(problem_vocabulary, filename):
     return round((len(student_vocabulary)-len(come_notproblemvocabulary))/float(len(student_vocabulary)), 2) 
 
 def save(message):
+    url = 'https://us-central1-qichecklog.cloudfunctions.net/logit?accept=%s'
     message = json.dumps(message)
     urlrequest.urlopen(url % message)
+
+    try:
+        os.system('tst commit')
+    except IOError:
+        print("Usage: type tst commit to send your code")
+        sys.exit(1)
     
 if __name__ == '__main__':
   print("ichecking is a helper module for tst_qcheck commands")

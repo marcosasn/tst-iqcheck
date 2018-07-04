@@ -177,7 +177,6 @@ def get_logdata(filenames, output):
     content["user"] = get_username()
     content["positives"] = ichecklib.get_positives(get_problem_vocabulary(), filenames)
     content["negatives"] = ichecklib.get_negatives(get_problem_vocabulary(), filenames)
-    content["code"] = ichecklib.get_code(filenames)
     return tstlib.data2json(content)
     
 def pack_logfeedback(results):
@@ -192,8 +191,8 @@ def pack_logfeedback(results):
                 vocabulary += 1
             else:
                 style += message[0]    
-    report = { "stylewarning": style, "codewarning": code, "vocabularywarning": vocabulary,  "feedback": results }
-    
+    #report = { "stylewarning": style, "codewarning": code, "vocabularywarning": vocabulary,  "feedback": results }
+    report = {"vocabularywarning": vocabulary,  "feedback": results}
     return report
 
 def pack_markdownfeedback(filename, results):
@@ -533,7 +532,6 @@ def main():
                 results.append((code, get_rawmetrics(code)))
             report = pack_profresults(results)
             
-        print report
         ### Is log active?
         if logit:
             ichecklib.save(logit)
