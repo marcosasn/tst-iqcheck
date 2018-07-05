@@ -44,7 +44,7 @@ def is_builtinfunction(name):
     return True
 
 def get_positives(problem_vocabulary, filename):
-    student_vocabulary = list(set(get_studentidentifiers(filename)))
+    student_vocabulary = get_studentidentifiers(filename)
     came_fromproblem = []
 
     for id in student_vocabulary:
@@ -79,7 +79,7 @@ def get_studentidentifiers(filename):
             for arg in args:
                 if not is_builtinfunction(arg.id):
                     names.append(arg.id)
-    return names
+    return list(set(names))
 
 def generate_problemvocabulary(problem_file):
     with codecs.open(problem_file, mode='r', encoding='utf-8') as fp:
@@ -206,7 +206,7 @@ def id_checking(id, problem_vocabulary):
     return False
         
 def ichecking(problem_vocabulary, filename):
-    student_vocabulary = list(set(get_studentidentifiers(filename)))
+    student_vocabulary = get_studentidentifiers(filename)
     came_notfromproblem = []
 
     for id in student_vocabulary:
@@ -227,7 +227,7 @@ def ichecking(problem_vocabulary, filename):
     return came_notfromproblem
 
 def icheckscore(problem_vocabulary, filename):
-    student_vocabulary = list(set(get_studentidentifiers(filename)))
+    student_vocabulary = get_studentidentifiers(filename)
     come_notproblemvocabulary = ichecking(problem_vocabulary, filename)
     
     return round((len(student_vocabulary)-len(come_notproblemvocabulary))/float(len(student_vocabulary)), 2) 

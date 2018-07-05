@@ -175,9 +175,10 @@ def get_logdata(filenames, output):
     content = { "filename": filenames, "report": output }
     content["iid"] = get_activityid()
     content["user"] = get_username()
-    content["identifiers"] = ichecklib.get_studentidentifiers(filenames) 
+    content["identifiers"] = ichecklib.get_studentidentifiers(filenames))) 
     content["positives"] = ichecklib.get_positives(get_problem_vocabulary(), filenames)
     content["negatives"] = ichecklib.get_negatives(get_problem_vocabulary(), filenames)
+    content["icheckscore"] = ichecklib.icheckscore(get_problem_vocabulary(), filenames)
     return content
     
 def pack_logfeedback(results):
