@@ -35,7 +35,7 @@ NOREFERENCE = "There are no values or reference terms."
 #NOPROBLEMIDENTIFIER = "appears to not reflect the problem specification."
 NOTPROPERIDENTIFIER = "nao parece ser um nome adequado. Use palavras da descricao da atividade."
 #NOWARNINGS = "No warnings. Congratulations!"
-NOWARNINGS = "Nenhuma advertencia. Parabens!"
+NOWARNINGS = "Nenhuma advertência. Parabéns!"
 
 # Output Settings
 COLNUMBERWIDTH = 5
@@ -242,7 +242,7 @@ def pack_markdownfeedback(filename, results):
     if vocabularywarnings:
         header = LBLUE + "# %s\n\n" % filename
         #report = LCYAN + "**%d Warning(s)** \n\n" % (stylewarnings + codewarnings + vocabularywarnings) + RESET
-        report = LCYAN + "**%d Advertencia(s)** \n\n" % (vocabularywarnings) + RESET
+        report = LCYAN + "**%d Advertência(s)** \n\n" % (vocabularywarnings) + RESET
         #messages = codeline if codewarnings else ""
         #messages += styleline if stylewarnings else ""
         #messages += vocabularyline if vocabularywarnings else ""
@@ -422,9 +422,9 @@ def read_qcheckjson(exit=False, quit_on_fail=False):
     return qcheckjson
 
 def get_filestocheck(pattern):
-     #Code borrowed from tst_test.py (c) 2011-2014 Dalton Serey, UFCG
+    #Code borrowed from tst_test.py (c) 2011-2014 Dalton Serey, UFCG
     
-     # Obtain filenames
+    # Obtain filenames
     if len(pattern) == 1 and os.path.exists(pattern[0]):
         filenames = [pattern[0]]
     elif len(pattern) == 1:

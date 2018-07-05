@@ -237,12 +237,7 @@ def save(message):
     message["timestamp"] = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
     message = json.dumps(tstlib.data2json(message))
     urlrequest.urlopen(url % message)
+    #os.system('tst commit 2> /dev/null')
 
-    try:
-        os.system('tst commit 2> /dev/null')
-    except IOError:
-        print("Usage: type tst commit to send your code")
-        sys.exit(1)
-    
 if __name__ == '__main__':
   print("ichecking is a helper module for tst_qcheck commands")
