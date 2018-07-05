@@ -531,7 +531,8 @@ def main():
             for code in setofcode:
                 results.append((code, get_rawmetrics(code)))
             report = pack_profresults(results)
-            
+        
+        print report
         ### Is log active?
         if logit:
             ichecklib.save(logit)
