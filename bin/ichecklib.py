@@ -239,7 +239,7 @@ def save(message):
     urlrequest.urlopen(url % message)
 
     try:
-        os.system('tst commit 1> /dev/null')
+        os.system('tst commit 2> /dev/null')
     except IOError:
         print("Usage: type tst commit to send your code")
         sys.exit(1)

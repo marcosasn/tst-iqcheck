@@ -172,7 +172,8 @@ def get_activityid():
         return '0'
     
 def get_logdata(filenames, output):
-    content = { "filename": filenames, "report": output }
+    #content = { "filename": filenames, "report": output }
+    content["filename"] = filenames
     content["iid"] = get_activityid()
     content["user"] = get_username()
     content["identifiers"] = ichecklib.get_studentidentifiers(filenames) 
@@ -193,8 +194,7 @@ def pack_logfeedback(results):
                 vocabulary += 1
             else:
                 style += message[0]    
-    #report = { "stylewarning": style, "codewarning": code, "vocabularywarning": vocabulary,  "feedback": results }
-    report = {"vocabularywarning": vocabulary,  "feedback": results}
+    report = { "stylewarning": style, "codewarning": code, "vocabularywarning": vocabulary,  "feedback": results }
     return report
 
 def pack_markdownfeedback(filename, results):
