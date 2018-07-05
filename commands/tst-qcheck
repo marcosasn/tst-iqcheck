@@ -173,7 +173,7 @@ def get_activityid():
     
 def get_logdata(filenames, output):
     #content = { "filename": filenames, "report": output }
-    content["filename"] = filenames
+    content = { "filename": filenames }
     content["iid"] = get_activityid()
     content["user"] = get_username()
     content["identifiers"] = ichecklib.get_studentidentifiers(filenames) 
