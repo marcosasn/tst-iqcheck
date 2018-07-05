@@ -15,6 +15,8 @@ import codecs
 import ast
 import re
 import __builtin__
+import time
+import datetime
 from fileinput import filename
 
 try:
@@ -232,11 +234,12 @@ def icheckscore(problem_vocabulary, filename):
 
 def save(message):
     url = 'https://us-central1-qichecklog.cloudfunctions.net/logit?accept=%s'
-    message = json.dumps(message)
+    message["timestamp"] = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+    message = json.dumps(tstlib.data2json(message))
     urlrequest.urlopen(url % message)
 
     try:
-        os.system('tst commit')
+        os.system('tst commit 1> /dev/null')
     except IOError:
         print("Usage: type tst commit to send your code")
         sys.exit(1)
