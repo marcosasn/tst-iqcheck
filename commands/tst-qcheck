@@ -533,8 +533,11 @@ def main():
             for code in setofcode:
                 results.append((code, get_rawmetrics(code)))
             report = pack_profresults(results)
-        
-        print report
+        if not_committed():
+            print "você não fez commit. use `tst commit` para submeter seu programa"
+            sys.exit(1)
+        else:
+            print report
         ### Is log active?
         if logit:
             ichecklib.save(logit)
@@ -543,6 +546,18 @@ def main():
         print("Usage: tst qcheck [options] code.py")
         sys.exit(1)
     
+def not_committed():
+    command = os.popen('tst test --server 2> /dev/null').read()
+    try:
+        response = json.loads(command)
+        response = response["messages"][0].encode('utf-8')
+    except ValueError:
+        if ValueError:
+            return False
+    if response == "assignment has no answers":
+            return True
+    return False
+
 if __name__ == "__main__":
     
     if len(sys.argv) < 2:
