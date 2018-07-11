@@ -446,6 +446,18 @@ def get_filestocheck(pattern):
 def get_problemvocabulary(problem_file):
     return ichecklib.generate_problemvocabulary(problem_file)
 
+def not_committed():
+    command = os.popen('tst test --server 2> /dev/null').read()
+    try:
+        response = json.loads(command)
+        response = response["messages"][0].encode('utf-8')
+    except ValueError:
+        if ValueError:
+            return False
+    if response == "assignment has no answers":
+            return True
+    return False
+
 def parse_arguments():
     from argparse import RawTextHelpFormatter
 
@@ -545,18 +557,6 @@ def main():
     except IOError:
         print("Usage: tst qcheck [options] code.py")
         sys.exit(1)
-    
-def not_committed():
-    command = os.popen('tst test --server 2> /dev/null').read()
-    try:
-        response = json.loads(command)
-        response = response["messages"][0].encode('utf-8')
-    except ValueError:
-        if ValueError:
-            return False
-    if response == "assignment has no answers":
-            return True
-    return False
 
 if __name__ == "__main__":
     
