@@ -42,9 +42,9 @@ $ tst qcheck code.py
 
 **2 Warning(s)** 
 
-### Identifiers names
-- *x* Does not appear to be a suitable name. You should use words from the programming assignment description.
-- *y* Does not appear to be a suitable name. You should use words from the programming assignment description.
+### Identifiers
+- *x* does not appear to be a suitable name. You should use words from the programming assignment description.
+- *y* does not appear to be a suitable name. You should use words from the programming assignment description.
 ```
 In this sample execution, there are two identifiers name warnings. 
 
