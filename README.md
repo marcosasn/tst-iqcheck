@@ -69,6 +69,6 @@ IQCHECK must be installed using the command below. It uses an existing TST confi
 
 To install the latest stable release, run the following command.
 
-$ bash -c "$(curl -q -sSL http://bit.ly/iqcheck-install)"
+$ bash -c "$(curl -q -sSL http://bit.ly/tst-iqcheck-install)"
 
 ### Development pre-release
