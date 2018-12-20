@@ -13,7 +13,7 @@
 #       Install the new version into <dir>.
 
 # constants
-INSTALL_DIR=~/.tst/qcheck.install
+INSTALL_DIR=~/.tst/iqcheck.install
 TST_DIR=~/.tst
 CONFIG_FILE=~/.tst/config.json
 UPDATE="false"
@@ -71,7 +71,7 @@ function print {
 
 # MAIN
 
-print "Installing qcheck scripts\n" $WARNING
+print "Installing iqcheck scripts\n" $WARNING
 
 # process options
 while (( $# > 0 )); do
@@ -153,10 +153,10 @@ fi
 
 # identify releases url
 if [ "$DOWNLOAD_DEV_VERSION" == "true" ]; then
-    RELEASES_URL='https://api.github.com/repos/marcosasn/tst-qcheck/releases'
+    RELEASES_URL='https://api.github.com/repos/marcosasn/tst-iqcheck/releases'
     print "* fetching development pre-release information\n"
 else
-    RELEASES_URL='https://api.github.com/repos/marcosasn/tst-qcheck/releases/latest'
+    RELEASES_URL='https://api.github.com/repos/marcosasn/tst-iqcheck/releases/latest'
     print "* fetching latest release information\n"
 fi
 
@@ -190,7 +190,7 @@ mkdir -p $INSTALL_DIR
 # download latest release into INSTALL_DIR
 cd $INSTALL_DIR
 
-curl -q -Lko qcheck.zip $ZIPBALL_URL 2> /dev/null
+curl -q -Lko iqcheck.zip $ZIPBALL_URL 2> /dev/null
 if [ $? != 0 ]; then
     rm -rf $INSTALL_DIR
     echo $ZIPBALL_URL
@@ -201,15 +201,14 @@ if [ $? != 0 ]; then
 fi
 
 # unzip and install tst scripts within INSTALL_DIR
-print "* unzipping and installing qcheck scripts\n"
-unzip -q qcheck.zip
-rm qcheck.zip
+print "* unzipping and installing iqcheck scripts\n"
+unzip -q iqcheck.zip
+rm iqcheck.zip
 
 # move files to TST_DIR
-mv marcosasn-tst-qcheck*/bin/* $TST_DIR/bin/
-mv marcosasn-tst-qcheck*/commands/* $TST_DIR/commands/
-
-chmod +x $TST_DIR/commands/tst-qcheck
+mv marcosasn-tst-iqcheck*/bin/* $TST_DIR/bin/
+mv marcosasn-tst-iqcheck*/commands/* $TST_DIR/commands/
+chmod +x $TST_DIR/commands/tst-iqcheck
 
 # download third party dependencies
 # pycodestyle
@@ -241,14 +240,14 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
-# Move files to qcheck dir
-mkdir -p $TST_DIR/qcheck
-mv marcosasn-tst-qcheck*/LICENSE $TST_DIR/qcheck/
-mv marcosasn-tst-qcheck*/README.md $TST_DIR/qcheck/
-mv marcosasn-tst-qcheck*/etc/* $TST_DIR/qcheck/
+# Move files to iqcheck dir
+mkdir -p $TST_DIR/iqcheck
+mv marcosasn-tst-iqcheck*/LICENSE $TST_DIR/iqcheck/
+mv marcosasn-tst-iqcheck*/README.md $TST_DIR/iqcheck/
+mv marcosasn-tst-iqcheck*/etc/* $TST_DIR/iqcheck/
 
 # configure environment
-python $TST_DIR/qcheck/set_config.py
+python $TST_DIR/iqcheck/set_config.py
 print "Finished environment configuration\n" $IMPORTANT
 
 # Report activity

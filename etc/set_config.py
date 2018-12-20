@@ -11,14 +11,14 @@ def add_command_qcheck():
     config = tstlib.Config()
     if config.get('custom_commands') == None:
         config['custom_commands'] = {}
-    if 'qcheck' not in config.get('custom_commands').keys():
-        config.get('custom_commands')['qcheck'] = ['tst-qcheck']
+    if 'iqcheck' not in config.get('custom_commands').keys():
+        config.get('custom_commands')['iqcheck'] = ['tst-iqcheck']
     
     config.save()
     
 def main():
-    add_command_qcheck()
-    print("qcheck: tst qcheck set") 
+    add_command_iqcheck()
+    print("iqcheck: tst iqcheck set") 
     return
 
 if __name__ == "__main__":
