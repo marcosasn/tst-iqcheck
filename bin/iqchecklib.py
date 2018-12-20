@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# Aid tools to identifier quality checker.
-# Ichecklib 
+# Aid tools to identifiers quality checker.
+# Iqchecklib 
 # Marcos Nascimento, 2018
 
 import os
@@ -223,7 +223,7 @@ def ichecking(problem_vocabulary, filename):
         
         if not is_fromproblem:
             came_notfromproblem.append(id)
-
+            
     return came_notfromproblem
 
 def icheckscore(problem_vocabulary, filename):

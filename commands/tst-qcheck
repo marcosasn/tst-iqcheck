@@ -8,7 +8,7 @@
 # pep8: Adherence to Python coding standards (PEP8)
 #
 # Eliane Araujo, 2016-2017
-#
+# Marcos Nascimento, 2018-2019
 
 import os
 import sys
@@ -20,10 +20,10 @@ import qchecklib
 import tstlib
 import os.path
 
-#soluction provided by https://stackoverflow.com/questions/7587457/importerror-no-module-named-python
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 import bin
-from bin import ichecklib
+from bin import iqchecklib
 from fileinput import filename
 
 # Feedback Messages
@@ -32,10 +32,10 @@ HIGHLLOC = "Your program has too many lines of code."
 HIGHCC = "Your program has too many decision points."
 HIGHVHALSTEAD = "Your program has too many operations (Example: +,-,==, etc)."
 NOREFERENCE = "There are no values or reference terms."
-#NOPROBLEMIDENTIFIER = "appears to not reflect the problem specification."
-NOTPROPERIDENTIFIER = "não parece ser um nome adequado. Use palavras da descrição da atividade."
-#NOWARNINGS = "No warnings. Congratulations!"
-NOWARNINGS = "Nenhuma advertência. Parabéns!"
+NOTSUITABLENAME = "does not appear to be a suitable name. You should use words from the programming assignment description."
+#NOTSUITABLENAME = "não parece ser um nome adequado. Use palavras da descrição da atividade."
+NOWARNINGS = "No warnings. Congratulations!"
+#NOWARNINGS = "Nenhuma advertência. Parabéns!"
 
 # Output Settings
 COLNUMBERWIDTH = 5
@@ -122,9 +122,9 @@ def quality_report( raw_metrics ):
     report["header"] = [raw_metrics.get("header")]    
     if not check_header(raw_metrics.get("header")):
         report["header"].append( SHORTHEADER )
-    #ICHECKING
-    if raw_metrics.get("ichecking"):
-        report["ichecking"] = raw_metrics.get("ichecking")
+    #Iqcheck
+    if raw_metrics.get("iqcheck"):
+        report["iqcheck"] = raw_metrics.get("iqcheck")
     
     return report
 
@@ -142,7 +142,7 @@ def get_metrics(filename):
         "vhalstead": qchecklib.vhalstead(filename),
         "pep8": qchecklib.pep8(filename),
         "header": qchecklib.header_lines(filename),
-        "ichecking": ichecklib.ichecking(get_problem_vocabulary(), filename)
+        "iqcheck": iqchecklib.ichecking(get_problem_vocabulary(), filename)
     }
     return results
 
@@ -153,7 +153,7 @@ def get_rawmetrics(filename):
         "vhalstead": qchecklib.vhalstead(filename),
         "pep8": qchecklib.pep8count(filename),
         "header": qchecklib.header_lines(filename),
-        "icheckscore": ichecklib.icheckscore(get_problem_vocabulary(), filename)
+        "iqcheckscore": iqchecklib.icheckscore(get_problem_vocabulary(), filename)
     }  
     return results
 
@@ -176,34 +176,34 @@ def get_logdata(filenames, output):
     content = { "filename": filenames }
     content["iid"] = get_activityid()
     content["user"] = get_username()
-    content["identifiers"] = ichecklib.get_studentidentifiers(filenames) 
-    content["positives"] = ichecklib.get_positives(get_problem_vocabulary(), filenames)
-    content["negatives"] = ichecklib.get_negatives(get_problem_vocabulary(), filenames)
-    content["icheckscore"] = ichecklib.icheckscore(get_problem_vocabulary(), filenames)
+    content["identifiers"] = iqchecklib.get_studentidentifiers(filenames) 
+    content["positives"] = iqchecklib.get_positives(get_problem_vocabulary(), filenames)
+    content["negatives"] = iqchecklib.get_negatives(get_problem_vocabulary(), filenames)
+    content["iqcheckscore"] = iqchecklib.icheckscore(get_problem_vocabulary(), filenames)
     return content
     
 def pack_logfeedback(results):
-    style, code, vocabulary = 0, 0, 0
+    style, code, identifier = 0, 0, 0
     code_feedbacks = ["cc", "header", "lloc", "vhalstead"]
-    vocabulary_feedback = ["ichecking"]
+    identifiers_feedback = ["iqcheck"]
     for feedback, message in results.items():
         if len(message) > 1:
             if feedback in code_feedbacks:
                 code += 1
-            elif feedback in vocabulary_feedback:
-                vocabulary += 1
+            elif feedback in identifiers_feedback:
+                identifier += 1
             else:
                 style += message[0]    
-    report = { "stylewarning": style, "codewarning": code, "vocabularywarning": vocabulary,  "feedback": results }
+    report = { "stylewarning": style, "codewarning": code, "identifierwarning": identifier,  "feedback": results }
     return report
 
 def pack_markdownfeedback(filename, results):
     codeline = "### Code\n"
     styleline = "### Style\n"
-    #vocabularyline = "### Vocabulary\n"
-    vocabularyline = "### Nomes\n"
-
-    codewarnings, stylewarnings, vocabularywarnings = 0, 0, 0
+    identifierline = "### Identifiers\n"
+    #identifierline = "### Identificadores\n"
+    
+    codewarnings, stylewarnings, identifierwarnings = 0, 0, 0
     
     if not results:
         return ""
@@ -229,24 +229,25 @@ def pack_markdownfeedback(filename, results):
         for i in range(1, len(results.get("pep8"))):
             styleline+=  "- %s\n" % results.get("pep8")[i]
             stylewarnings += 1
-    #ICHECKING
-    if results.get("ichecking") and len(results.get("ichecking")) >= 1:
-        for i in range(0, len(results.get("ichecking"))):
-            vocabularyline += '- {}*{}*{} {}\n'.format(BOLD,
-                                                       results.get("ichecking")[i],
+    #Iqcheck
+    if results.get("iqcheck") and len(results.get("iqcheck")) >= 1:
+        for i in range(0, len(results.get("iqcheck"))):
+            identifierline += '- {}*{}*{} {}\n'.format(BOLD,
+                                                       results.get("iqcheck")[i],
                                                        RESET,
-                                                       NOTPROPERIDENTIFIER) 
-            vocabularywarnings += 1
+                                                       NOTSUITABLENAME) 
+            identifierwarnings += 1
     
-    #if stylewarnings or codewarnings or vocabularywarnings:
-    if vocabularywarnings:
+    #if stylewarnings or codewarnings or identifierwarnings:
+    if identifierwarnings:
         header = LBLUE + "# %s\n\n" % filename
-        #report = LCYAN + "**%d Warning(s)** \n\n" % (stylewarnings + codewarnings + vocabularywarnings) + RESET
-        report = LCYAN + "**%d Advertência(s)** \n\n" % (vocabularywarnings) + RESET
+        #report = LCYAN + "**%d Warning(s)** \n\n" % (stylewarnings + codewarnings + identifierwarnings) + RESET
+        report = LCYAN + "**%d Warning(s)** \n\n" % (identifierwarnings) + RESET
+        #report = LCYAN + "**%d Advertência(s)** \n\n" % (identifierwarnings) + RESET
         #messages = codeline if codewarnings else ""
         #messages += styleline if stylewarnings else ""
         #messages += vocabularyline if vocabularywarnings else ""
-        messages = vocabularyline if vocabularywarnings else ""
+        messages = identifierline if identifierwarnings else ""
 
         text = header + report + messages[:-1]
     else:
@@ -300,9 +301,9 @@ def pack_readablemetrics(results):
     if results.get("vhalstead") is not None:
         line += '{0:>{width}.{precision}f}'.format(results.get("vhalstead"), \
                                                    width = COLNUMBERWIDTH + 3, precision = 2)
-    #ICHECKSCORE
-    if results.get("icheckscore") is not None:
-        line += '{0:>{width}.{precision}f}'.format(results.get("icheckscore"), \
+    #IQCHECKSCORE
+    if results.get("iqcheckscore") is not None:
+        line += '{0:>{width}.{precision}f}'.format(results.get("iqcheckscore"), \
                                                    width = COLNUMBERWIDTH + 3, precision = 2)
     return line
 
@@ -400,7 +401,7 @@ def read_tstjson(exit=False, quit_on_fail=False):
     return tstjson
 
 def read_qcheckjson(exit=False, quit_on_fail=False):
-#Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG  
+	#Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG  
     if not os.path.exists(QCHECKFILE):
         if quit_on_fail:
             msg = "qcheck: file not found"
@@ -423,7 +424,6 @@ def read_qcheckjson(exit=False, quit_on_fail=False):
 
 def get_filestocheck(pattern):
     #Code borrowed from tst_test.py (c) 2011-2014 Dalton Serey, UFCG
-    
     # Obtain filenames
     if len(pattern) == 1 and os.path.exists(pattern[0]):
         filenames = [pattern[0]]
@@ -444,7 +444,7 @@ def get_filestocheck(pattern):
     return filenames
 
 def get_problemvocabulary(problem_file):
-    return ichecklib.generate_problemvocabulary(problem_file)
+    return iqchecklib.generate_problemvocabulary(problem_file)
 
 def parse_arguments():
     from argparse import RawTextHelpFormatter
@@ -499,17 +499,17 @@ def main():
             report = pack_results(results) if outputformat == 'json' else pack_readablemetrics(results)
             
         elif function in ('set'): 
-            # set reference solution file
-                        
+            # set reference solution file               
             problem_file = glob.glob('*.yaml')
             if not problem_file:
                 print( "qcheck: the problem specification description in yaml file is needed.")
                 sys.exit()
+
             elif problem_file and not problem_file[0]:
                 print( "qcheck: the problem specification description in yaml file is needed.")
                 sys.exit()
+
             problem_vocabulary = get_problemvocabulary(problem_file[0])
-            
             write_problem_vocabulary(problem_vocabulary, QCHECKFILE)
             results = get_rawmetrics(filenames)
             write_results(results, QCHECKFILE)
@@ -537,7 +537,7 @@ def main():
         print report
         ### Is log active?
         if logit:
-            ichecklib.save(logit)
+            iqchecklib.save(logit)
             
     except IOError:
         print("Usage: tst qcheck [options] code.py")
