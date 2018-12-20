@@ -7,7 +7,7 @@
 import sys
 import tstlib
 
-def add_command_qcheck():
+def add_command_iqcheck():
     config = tstlib.Config()
     if config.get('custom_commands') == None:
         config['custom_commands'] = {}
