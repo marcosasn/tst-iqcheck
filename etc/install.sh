@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # coding: utf-8
 #
-# Interactive QCHECK installer script. Run this script to download
-# and install qcheck, a TST CUSTOM COMMAND tool. Be sure that TST is
+# Interactive IQCHECK installer script. Run this script to download
+# and install iqcheck, a TST CUSTOM COMMAND tool. Be sure that TST is
 # already installed in your environment.
 # This script can be invoked with these options:
 #
@@ -106,7 +106,7 @@ fi
 
 # require tst or abort
 if [ ! -d "$TST_DIR" ]; then
-  print "Qcheck requires tst\n" $WARNING
+  print "Iqcheck requires tst\n" $WARNING
   print "Aborting installation\n"
   exit 1
 fi
@@ -122,7 +122,7 @@ fi
 # require radon or abort
 RADON=$(command -v radon)
 if [ $? != 0 ]; then
-    print "\nQcheck requires radon\n" $WARNING
+    print "\nIqcheck requires radon\n" $WARNING
     print "Get radon and install it as superuser. Check: https://pypi.python.org/pypi/radon.\n" $NORMAL
     print "* Tip: sudo pip install radon\n" $IMPORTANT
     print "\nDon't have pip either?\n" $NORMAL
@@ -134,7 +134,7 @@ fi
 # require nltk or abort
 NLTK=$(python -c "import nltk;" 2> /dev/null)
 if [ $? != 0 ]; then
-    print "\nQcheck requires nltk\n" $WARNING
+    print "\nIqcheck requires nltk\n" $WARNING
     print "Get nltk and install it as superuser. Check: https://pypi.python.org/pypi/nltk.\n" $NORMAL
     print "* Tip: sudo pip install nltk\n" $IMPORTANT
     print "\nDon't have pip either?\n" $NORMAL

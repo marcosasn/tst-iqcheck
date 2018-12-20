@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 #
-# Set qcheck as a custom command in config file.
-# Eliane Araujo 2016
+# Set iqcheck as a custom command in config file.
+# Eliane Araujo, 2016
+# Marcos Nascimento, 2018
 
 import sys
 import tstlib
