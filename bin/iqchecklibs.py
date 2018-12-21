@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# Aid tools to quality checker.
+# Qchecklib silent
+# Eliane Araujo, 2016
+
+#!/usr/bin/env python
 # Aid tools to identifiers quality checker.
 # Iqchecklib 
 # Marcos Nascimento, 2018
@@ -232,10 +237,10 @@ def iqcheckscore(problem_vocabulary, filename):
     return round((len(program_identifiers)-len(come_notproblemvocabulary))/float(len(program_identifiers)), 2) 
 
 def save(message):
-    url = 'https://us-central1-qichecklog.cloudfunctions.net/logit?accept=%s'
+    url = 'https://us-central1-qichecklog.cloudfunctions.net/logit?decline=%s'
     message["timestamp"] = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
     message = json.dumps(tstlib.data2json(message))
     urlrequest.urlopen(url % message)
 
 if __name__ == '__main__':
-  print("iqchecklib is a helper module for tst_iqcheck commands")
+  print("iqchecklibs is a helper module for tst_iqcheck commands")

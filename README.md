@@ -13,7 +13,7 @@ This software is licensed under the terms of the AGPL 3.0 license. Please read t
 ### Usage 
 
 ```
-tst qcheck [-h] [-m METRICS] [-f FEEDBACK] [-p PROF]
+tst iqcheck [-h] [-m METRIC] [-f FEEDBACK] 
            [-o {human,json}]
            [filename]
 
@@ -24,10 +24,9 @@ positional arguments:
 
 optional arguments:
   -h, --help,        show this help message and exit
-  -m METRICS,        get values of cc, header, lloc, pep8, vhalstead and icheckscore
-  -f FEEDBACK,       present warning messages referring to identifiers
-  -p PROF,           get values of cc, header, lloc, pep8, vhalstead and icheckscore referring to a given pattern or file(s)
-  -s SET,            set reference code
+  -m METRICS,        get value of iqcheckscore
+  -f FEEDBACK,       present warning messages referring to code identifiers quality
+  -s SET,            set reference vocabulary and identifiers
   -o {human,json},   set output format
 ```
 

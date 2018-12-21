@@ -73,13 +73,13 @@ def get_reference_identifiers():
 
 def get_report(filename):
     results = {
-        "iqcheck": iqchecklib.ichecking(get_problem_vocabulary(), filename)
+        "iqcheck": iqchecklib.ichecking(get_problem_vocabulary(), iqchecklib.get_identifiers(filename))
     }
     return results
 
 def get_rawmetrics(filename):
     results = {
-        "iqcheck": iqchecklib.get_studentidentifiers(filename)
+        "iqcheck": iqchecklib.get_identifiers(filename)
     }  
     return results
 
@@ -101,10 +101,10 @@ def get_logdata(filenames, output):
     content = { "filename": filenames }
     content["iid"] = get_activityid()
     content["user"] = get_username()
-    content["identifiers"] = iqchecklib.get_studentidentifiers(filenames) 
+    content["identifiers"] = iqchecklib.get_identifiers(filenames) 
     content["positives"] = iqchecklib.get_positives(get_problem_vocabulary(), filenames)
     content["negatives"] = iqchecklib.get_negatives(get_problem_vocabulary(), filenames)
-    content["iqcheckscore"] = iqchecklib.icheckscore(get_problem_vocabulary(), filenames)
+    content["iqcheckscore"] = iqchecklib.iqcheckscore(get_problem_vocabulary(), filenames)
     return content
     
 def pack_logfeedback(results):
@@ -254,7 +254,7 @@ def read_iqcheckjson(exit=False, quit_on_fail=False):
     return iqcheckjson
 
 def get_problemvocabulary(problem_file):
-    return iqchecklib.generate_problemvocabulary(problem_file)
+    return iqchecklib.extract_problemvocabulary(problem_file)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Check python code identifiers quality.',
@@ -297,8 +297,7 @@ def main():
     try:
         if function in ('metrics') :
             # metrics output human-readable format
-            if 
-            results["iqcheckscore"] = iqchecklib.icheckscore(get_problem_vocabulary(), filenames)
+            results = { "iqcheckscore": iqchecklib.iqcheckscore(get_problem_vocabulary(), filenames) }
             report = pack_results(results) if outputformat == 'json' else pack_readablemetrics(results)
             
         elif function in ('set'): 
@@ -315,7 +314,6 @@ def main():
             problem_vocabulary = get_problemvocabulary(problem_file[0])
             write_results("problem_vocabulary", problem_vocabulary, IQCHECKFILE)
             results = get_rawmetrics(filenames)
-            #write_results(results, IQCHECKFILE)
             write_results("reference_identifiers", results, IQCHECKFILE)
 
             report = IQCHECKFILE + " was created."
