@@ -219,14 +219,14 @@ if [[ "$root" != "true" ]]; then
     get_yes_or_no
     if [[ "$answer" == "n" ]]; then
         # Dont report activities
-        mv $TST_DIR/bin/iqchecklib.py $TST_DIR/bin/iqchecklibs.py
+        mv $TST_DIR/bin/iqchecklibs.py $TST_DIR/bin/iqchecklib.py
     else
         # Report activities
-        rm $TST_DIR/bin/iqchecklib.py
+        rm $TST_DIR/bin/iqchecklibs.py
     fi
 else
     # Report activities
-    rm $TST_DIR/bin/iqchecklib.py
+    rm $TST_DIR/bin/iqchecklibs.py
 fi
 
 # end installation
