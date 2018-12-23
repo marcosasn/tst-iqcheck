@@ -9,7 +9,6 @@ import commands
 import json
 import nltk
 import tstlib
-import unidecode
 import yaml
 import codecs
 import ast
@@ -20,11 +19,17 @@ import datetime
 from fileinput import filename
 
 try:
+    import unidecode
+except ImportError:
+    print("tst identifiers quality checker needs unidecode to work.")
+    sys.exit(1)
+
+try:
     sys.path.append('/usr/local/bin/nltk/')
     from nltk.corpus import stopwords
     from nltk.tokenize import word_tokenize
 except ImportError:
-    print("tst quality checker needs nltk to work.")
+    print("tst identifiers quality checker needs nltk to work.")
     sys.exit(1)
 
 try:
@@ -43,30 +48,6 @@ def is_builtinfunction(name):
             return False
     return True
 
-def get_positives(problem_vocabulary, filename):
-    program_identifiers = get_identifiers(filename)
-    came_fromproblem = []
-
-    for id in program_identifiers:
-        is_fromproblem = False
-        
-        if has_underscore(id):
-            is_fromproblem = check_idwithuderscore(id, problem_vocabulary)
-            
-        elif has_camelcase(id):
-            is_fromproblem = check_idwithcamelcase(id, problem_vocabulary)
-               
-        elif is_simpleid(id):
-            is_fromproblem = id_checking(id.lower(), problem_vocabulary)
-        
-        if is_fromproblem:
-            came_fromproblem.append(id)
-
-    return came_fromproblem
-
-def get_negatives(problem_vocabulary, filename):
-    return ichecking(problem_vocabulary, filename)
-
 def get_identifiers(filename):
     program = ast.parse(open(filename).read())  
     identifiers = []
@@ -81,25 +62,57 @@ def get_identifiers(filename):
                     identifiers.append(arg.id)
     return list(set(identifiers))
 
-def extract_problemvocabulary(problem_file):
-    with codecs.open(problem_file, mode='r', encoding='utf-8') as fp:
-        problem_file = yaml.load(fp)
+def get_positiveidentifiers(reference_words, program_identifiers):
+    positiveidentifiers = []
+
+    for id in program_identifiers:
+        is_positive = False
+        
+        if has_underscore(id):
+            is_positive = check_idwithuderscore(id, reference_words)
+            
+        elif has_camelcase(id):
+            is_positive = check_idwithcamelcase(id, reference_words)
+               
+        elif is_simple(id):
+            is_positive = idqcheck(id.lower(), reference_words)
+        
+        if is_positive:
+            positiveidentifiers.append(id)
+
+    return positiveidentifiers
+
+def get_negativeidentifiers(reference_words, program_identifiers):
+    return iqcheck(reference_words, program_identifiers)
+
+def extract_problemvocabulary(problemtext_filename):
+    with codecs.open(problemtext_filename, mode='r', encoding='utf-8') as fp:
+        problemtext_file = yaml.load(fp)
     
-    problem = problem_file["text"].lower().replace('\n', ' ')
+    problemtext = problemtext_file["text"].lower().replace('\n', ' ')
     delimiters = ['r$','%','*','**','$','#','##','_','(',')', '.','-se','`','`','<','>','/']
     
     for delimiter in delimiters:
         if delimiter in ('/','<','>'):
-            problem = problem.replace(delimiter, ' ')
+            problemtext = problemtext.replace(delimiter, ' ')
         else:
-            problem = problem.replace(delimiter, '')
+            problemtext = problemtext.replace(delimiter, '')
     
-    tokens = filter_stopwords(tokenize_text(problem), detect_language(problem))
+    tokens = filter_stopwords(tokenize_text(problemtext), detect_language(problemtext))
     tokens_taged = nltk.pos_tag(tokens)
     vocabulary = transform_steams(tokens_taged) 
     return vocabulary
 
-def tokenize_text(problem):
+def filter_stopwords(tokens, language):
+    #Code borrowed. (c) 2013 Alejandro Nolla
+    stop_words = set(stopwords.words(language))
+    tokens_filtered = []
+    for t in tokens:
+        if t not in stop_words:
+            tokens_filtered.append(t)
+    return tokens_filtered
+
+def tokenize_text(problemtext):
     #Removing pontuaction and numbers
     is_wordwithrepeatedletters = lambda t: not re.compile(r'([a-z])\1+').match(t)
     is_number = lambda t: not re.compile(r'([0-9])').match(t)
@@ -111,22 +124,19 @@ def tokenize_text(problem):
     
     filters = [is_wordwithrepeatedletters, is_number, is_wordfollowedbynumbers, is_fileextension, is_shortword, is_meaningless, is_htmlformat]
 
-    tokens = word_tokenize(problem)
+    tokens = word_tokenize(problemtext)
     tokens = [unidecode.unidecode(token) for token in tokens]
     
     for fun in filters:
         tokens = filter(fun, tokens)
 
     return list(set(tokens))
-    
-def filter_stopwords(tokens, language):
+
+def detect_language(text):
     #Code borrowed. (c) 2013 Alejandro Nolla
-    stop_words = set(stopwords.words(language))
-    tokens_filtered = []
-    for t in tokens:
-        if t not in stop_words:
-            tokens_filtered.append(t)
-    return tokens_filtered
+    ratios = calculate_languagesratios(text)
+    most_ratedlanguage = max(ratios, key=ratios.get)
+    return most_ratedlanguage
 
 def calculate_languagesratios(text):
     #Code borrowed. (c) 2013 Alejandro Nolla
@@ -140,17 +150,10 @@ def calculate_languagesratios(text):
         languages_ratios[language] = len(common_elements) # language "score"
     return languages_ratios
 
-def detect_language(text):
-    #Code borrowed. (c) 2013 Alejandro Nolla
-    ratios = calculate_languagesratios(text)
-    most_ratedlanguage = max(ratios, key=ratios.get)
-    return most_ratedlanguage
-
 def transform_steams(tokens_taged):
     stemmer = nltk.stem.RSLPStemmer()
     is_not_noun = lambda pos: pos[:2] not in ('NNP','NN') #('VB','VBP','VBG','VBD','VBZ')
     is_noun = lambda pos: pos[:2] in ('NNP','NN')
-
     vocabulary = []
     
     for (word, pos) in tokens_taged:
@@ -161,75 +164,73 @@ def transform_steams(tokens_taged):
             vocabulary.append(word)
     return list(set(vocabulary))
 
-def check_idwithuderscore(id, problem_vocabulary):
-    ids = id.split('_')
-    ids = filter_stopwords(ids, LANGUAGE)
-
-    count_idsfromproblem = 0
-    for i in ids:
-        if id_checking(i.lower(), problem_vocabulary):
-            count_idsfromproblem += 1
-    if count_idsfromproblem >= 1:
-        return True
-    return False
-
 def has_underscore(id):
     return "_" in id.lower()
 
-def check_idwithcamelcase(id, problem_vocabulary):
-    uppercase_tounderscore = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', id)
-    lowercase_tounderscore = re.sub('([a-z0-9])([A-Z])', r'\1_\2',
-                                     uppercase_tounderscore)
-    return check_idwithuderscore(lowercase_tounderscore, problem_vocabulary)
+def check_idwithuderscore(idwithuderscore, reference_words):
+    terms = idwithuderscore.split('_')
+    terms = filter_stopwords(terms, LANGUAGE)
+
+    positiveterms = 0
+    for term in terms:
+        if idqcheck(term.lower(), reference_words):
+            positiveterms += 1
+    if positiveterms >= 1:
+        return True
+    return False
 
 def has_camelcase(id):
     return (id != id.lower() and id != id.upper())
+    
+def check_idwithcamelcase(id, reference_words):
+    uppercase_tounderscore = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', id)
+    lowercase_tounderscore = re.sub('([a-z0-9])([A-Z])', r'\1_\2',
+                                     uppercase_tounderscore)
+    return check_idwithuderscore(lowercase_tounderscore, reference_words)
 
-def is_simpleid(id):
+def is_simple(id):
     return id == id.lower() 
 
-def id_checking(id, problem_vocabulary):
+def idqcheck(id, reference_words):
     stemmer = nltk.stem.RSLPStemmer()
     
-    if id in problem_vocabulary:
+    if id in reference_words:
         return True
     
-    elif stemmer.stem(id) in problem_vocabulary:
+    elif stemmer.stem(id) in reference_words:
         return True
     
-    elif id in [stemmer.stem(word) for word in problem_vocabulary]:
+    elif id in [stemmer.stem(word) for word in reference_words]:
         return True
     
-    elif stemmer.stem(id) in [stemmer.stem(word) for word in problem_vocabulary]:
+    elif stemmer.stem(id) in [stemmer.stem(word) for word in reference_words]:
         return True 
     
     return False
-        
-def ichecking(problem_vocabulary, program_identifiers):
-    came_notfromproblem = []
+
+def iqcheck(reference_words, program_identifiers):
+    negativeidentifiers = []
 
     for id in program_identifiers:
-        is_fromproblem = False
+        is_positive = False
         
         if has_underscore(id):
-            is_fromproblem = check_idwithuderscore(id, problem_vocabulary)
+            is_positive = check_idwithuderscore(id, reference_words)
             
         elif has_camelcase(id):
-            is_fromproblem = check_idwithcamelcase(id, problem_vocabulary)
+            is_positive = check_idwithcamelcase(id, reference_words)
                
-        elif is_simpleid(id):
-            is_fromproblem = id_checking(id.lower(), problem_vocabulary)
+        elif is_simple(id):
+            is_positive = idqcheck(id.lower(), reference_words)
         
-        if not is_fromproblem:
-            came_notfromproblem.append(id)
+        if not is_positive:
+            negativeidentifiers.append(id)
             
-    return came_notfromproblem
-
-def iqcheckscore(problem_vocabulary, filename):
-    program_identifiers = get_identifiers(filename)
-    come_notproblemvocabulary = ichecking(problem_vocabulary, program_identifiers)
-    
-    return round((len(program_identifiers)-len(come_notproblemvocabulary))/float(len(program_identifiers)), 2) 
+    return negativeidentifiers
+ 
+def iqcheckscore(reference_words, program_identifiers):
+    negativeidentifiers = iqcheck(reference_words, program_identifiers)    
+    return round((len(program_identifiers)-len(negativeidentifiers))/float(len(program_identifiers)), 2)
 
 def save(message):
     url = 'https://us-central1-qichecklog.cloudfunctions.net/logit?accept=%s'

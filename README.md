@@ -13,7 +13,8 @@ This software is licensed under the terms of the AGPL 3.0 license. Please read t
 ### Usage 
 
 ```
-tst iqcheck [-h] [-m METRIC] [-f FEEDBACK] 
+tst iqcheck [-h] [-m METRIC] [-f FEEDBACK]
+           [-s SET] 
            [-o {human,json}]
            [filename]
 

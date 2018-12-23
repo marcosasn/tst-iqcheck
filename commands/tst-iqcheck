@@ -13,7 +13,6 @@ import json
 import codecs
 import glob
 import argparse
-import qchecklib
 import tstlib
 import os.path
 
@@ -46,42 +45,68 @@ LCYAN = '\033[1;36m'
 RESET = '\033[0m'
 BOLD = '\033[1m'
 
-def quality_report( raw_report ):
-    report = {}
-    if not raw_report:
-        report["message"] = NOREFERENCE
-
-    #Iqcheck
-    if raw_report.get("iqcheck"):
-        report["iqcheck"] = raw_report.get("iqcheck")
-    
-    return report
-
-def get_problem_vocabulary(): 
+def get_referencewords(): 
     iqcheckjson = read_iqcheckjson(exit=True)
-    if iqcheckjson.get("problem_vocabulary"):
-        return iqcheckjson.get("problem_vocabulary")
+    if iqcheckjson.get("reference_words"):
+        return iqcheckjson.get("reference_words")
     else:
         return {}
 
-def get_reference_identifiers(): 
+def get_referenceidentifiers(): 
     iqcheckjson = read_iqcheckjson(exit=True)
     if iqcheckjson.get("reference_identifiers"):
         return iqcheckjson.get("reference_identifiers")
     else:
         return {}
 
-def get_report(filename):
-    results = {
-        "iqcheck": iqchecklib.ichecking(get_problem_vocabulary(), iqchecklib.get_identifiers(filename))
-    }
-    return results
+def write_results(tag, results, IQCHECKFILE):
+    iqcheckjson = read_iqcheckjson(exit=True)
+    if tag == "reference_words":
+        if not get_referencewords():
+            iqcheckjson[tag] = results
+            with codecs.open(IQCHECKFILE, mode='w', encoding='utf-8') as fp:
+                json.dump(iqcheckjson, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
 
-def get_rawmetrics(filename):
-    results = {
-        "iqcheck": iqchecklib.get_identifiers(filename)
-    }  
-    return results
+        else:
+            with codecs.open(IQCHECKFILE, mode='r', encoding='utf-8') as jf:
+                data = json.load(jf)
+            data[tag] = results
+            with codecs.open(IQCHECKFILE, mode='w', encoding='utf-8') as fp:
+                json.dump(data, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
+    else:
+        if not get_referenceidentifiers():
+            iqcheckjson[tag] = results
+            with codecs.open(IQCHECKFILE, mode='w', encoding='utf-8') as fp:
+                json.dump(iqcheckjson, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
+
+        else:
+            with codecs.open(IQCHECKFILE, mode='r', encoding='utf-8') as jf:
+                data = json.load(jf)
+            data[tag] = results
+            with codecs.open(IQCHECKFILE, mode='w', encoding='utf-8') as fp:
+                json.dump(data, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
+
+def read_iqcheckjson(exit=False, quit_on_fail=False):
+    #Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG  
+    if not os.path.exists(IQCHECKFILE):
+        if quit_on_fail:
+            msg = "iqcheck: file not found"
+            print msg
+            sys.exit(1)
+        return {}
+    try:
+        with codecs.open(IQCHECKFILE, mode='r', encoding='utf-8') as f:
+            iqcheckjson = json.loads(tstlib.to_unicode(f.read()))
+        f.close()
+
+    except ValueError:
+        msg = "iqcheck: %s is corrupted" % IQCHECKFILE
+        if exit or quit_on_fail:
+            print msg
+            sys.exit(1)
+        raise CorruptedConfigFile(msg)
+    
+    return iqcheckjson
 
 def get_username():
     configjson = read_tstconfig(exit=True)
@@ -90,37 +115,84 @@ def get_username():
     else:
         return ''
 
+def read_tstconfig(exit=False, quit_on_fail=False):
+    #Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
+    if not os.path.exists(TSTCONFIG):
+        if quit_on_fail:
+            msg = "iqcheck: config.json file not found"
+            print msg
+            #sys.exit(1)
+        return {}
+    try:
+        with codecs.open(TSTCONFIG, mode='r', encoding='utf-8') as f:
+            configjson = json.loads(tstlib.to_unicode(f.read()))
+    except ValueError:
+        msg = "iqcheck: %s is corrupted" % TSTCONFIG
+        if exit_on_fail:
+            print msg
+            #sys.exit()
+        raise CorruptedFile(msg)
+        
+    return configjson
+
 def get_activityid():
     tstjson = read_tstjson(exit=True)
     if tstjson.get("iid"):
         return tstjson.get("iid")
     else:
         return '0'
+
+def read_tstjson(exit=False, quit_on_fail=False):
+    #Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
+    if not os.path.exists(TSTFILE):
+        if quit_on_fail:
+            msg = "iqcheck: tst.json file not found"
+            print msg
+            #sys.exit(1)
+        return {}
+    try:
+        with codecs.open(TSTFILE, mode='r', encoding='utf-8') as f:
+            tstjson = json.loads(tstlib.to_unicode(f.read()))
+        f.close()
+
+    except ValueError:
+        msg = "iqcheck: %s is corrupted" % TSTFILE
+        if exit or quit_on_fail:
+            print msg
+            #sys.exit(1)
+        raise CorruptedConfigFile(msg)
     
-def get_logdata(filenames, output):
-    content = { "filename": filenames }
-    content["iid"] = get_activityid()
-    content["user"] = get_username()
-    content["identifiers"] = iqchecklib.get_identifiers(filenames) 
-    content["positives"] = iqchecklib.get_positives(get_problem_vocabulary(), filenames)
-    content["negatives"] = iqchecklib.get_negatives(get_problem_vocabulary(), filenames)
-    content["iqcheckscore"] = iqchecklib.iqcheckscore(get_problem_vocabulary(), filenames)
-    return content
+    return tstjson
+
+def pack_results(results):    
+    return tstlib.data2json(results)
+
+def pack_readablemetric(results):
+    line = ""
+    if not results:
+        return line
+
+    #Iqcheckscore
+    if results.get("iqcheckscore") is not None:
+        line += 'iqcheckscore: {0:>{width}.{precision}f}'.format(results.get("iqcheckscore"), \
+                                                   width = COLNUMBERWIDTH + 3, precision = 2)
+    return line
+
+def quality_report(filename):
+    return { "iqcheck": iqchecklib.iqcheck(get_referencewords(), iqchecklib.get_identifiers(filename)) }
     
 def pack_logfeedback(results):
     identifier = 0
-    identifiers_feedback = ["iqcheck"]
     for feedback, message in results.items():
         if len(message) > 1:
-            if feedback in identifiers_feedback:
+            if feedback == "iqcheck":
                 identifier += 1    
-    report = { "identifierwarning": identifier, "feedback": results }
-    return report
+    
+    return { "identifierwarning": identifier, "feedback": results }
 
 def pack_markdownfeedback(filename, results):
     identifierline = "### Identifiers\n"
     #identifierline = "### Identificadores\n"
-    
     identifierwarnings = 0
     
     if not results:
@@ -147,119 +219,21 @@ def pack_markdownfeedback(filename, results):
     
     return text
 
-def pack_readablemetrics(results):
-    line = ""
-    if not results:
-        return line
-
-    #Iqcheckscore
-    if results.get("iqcheckscore") is not None:
-        line += '{0:>{width}.{precision}f}'.format(results.get("iqcheckscore"), \
-                                                   width = COLNUMBERWIDTH + 3, precision = 2)
-    return line
-
-def pack_results(results):    
-    return tstlib.data2json(results)
-
-def write_results(tag, results, IQCHECKFILE):
-    iqcheckjson = read_iqcheckjson(exit=True)
-    
-    if tag == "problem_vocabulary":
-        if not get_problem_vocabulary():
-            iqcheckjson[tag] = results
-            with codecs.open(IQCHECKFILE, mode='w', encoding='utf-8') as fp:
-                json.dump(iqcheckjson, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
-
-        else:
-            with codecs.open(IQCHECKFILE, mode='r', encoding='utf-8') as jf:
-                data = json.load(jf)
-            data[tag] = results
-            with codecs.open(IQCHECKFILE, mode='w', encoding='utf-8') as fp:
-                json.dump(data, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
-    else:
-        if not get_reference_identifiers():
-            iqcheckjson[tag] = results
-            with codecs.open(IQCHECKFILE, mode='w', encoding='utf-8') as fp:
-                json.dump(iqcheckjson, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
-
-        else:
-            with codecs.open(IQCHECKFILE, mode='r', encoding='utf-8') as jf:
-                data = json.load(jf)
-            data[tag] = results
-            with codecs.open(IQCHECKFILE, mode='w', encoding='utf-8') as fp:
-                json.dump(data, fp, indent = 2, separators=(',', ': '), ensure_ascii=False)
-    
-def read_tstconfig(exit=False, quit_on_fail=False):
-    #Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
-    if not os.path.exists(TSTCONFIG):
-        if quit_on_fail:
-            msg = "iqcheck: config.json file not found"
-            print msg
-            #sys.exit(1)
-        return {}
-    try:
-        with codecs.open(TSTCONFIG, mode='r', encoding='utf-8') as f:
-            configjson = json.loads(tstlib.to_unicode(f.read()))
-    except ValueError:
-        msg = "iqcheck: %s is corrupted" % TSTCONFIG
-        if exit_on_fail:
-            print msg
-            #sys.exit()
-        raise CorruptedFile(msg)
-        
-    return configjson
-
-def read_tstjson(exit=False, quit_on_fail=False):
-    #Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG
-    if not os.path.exists(TSTFILE):
-        if quit_on_fail:
-            msg = "iqcheck: tst.json file not found"
-            print msg
-            #sys.exit(1)
-        return {}
-    try:
-        with codecs.open(TSTFILE, mode='r', encoding='utf-8') as f:
-            tstjson = json.loads(tstlib.to_unicode(f.read()))
-        f.close()
-
-    except ValueError:
-        msg = "iqcheck: %s is corrupted" % TSTFILE
-        if exit or quit_on_fail:
-            print msg
-            #sys.exit(1)
-        raise CorruptedConfigFile(msg)
-    
-    return tstjson
-
-def read_iqcheckjson(exit=False, quit_on_fail=False):
-	#Code borrowed from tstlib.py (c) 2011-2014 Dalton Serey, UFCG  
-    if not os.path.exists(IQCHECKFILE):
-        if quit_on_fail:
-            msg = "iqcheck: file not found"
-            print msg
-            sys.exit(1)
-        return {}
-    try:
-        with codecs.open(IQCHECKFILE, mode='r', encoding='utf-8') as f:
-            iqcheckjson = json.loads(tstlib.to_unicode(f.read()))
-        f.close()
-
-    except ValueError:
-        msg = "iqcheck: %s is corrupted" % IQCHECKFILE
-        if exit or quit_on_fail:
-            print msg
-            sys.exit(1)
-        raise CorruptedConfigFile(msg)
-    
-    return iqcheckjson
-
-def get_problemvocabulary(problem_file):
-    return iqchecklib.extract_problemvocabulary(problem_file)
+def get_logdata(filenames, output):
+    content = {}
+    content.update({"filename": filenames})
+    content.update({"iid": get_activityid()})
+    content.update({"user": get_username()})
+    content.update({"identifiers": iqchecklib.get_identifiers(filenames)}) 
+    content.update({"positives": iqchecklib.get_positiveidentifiers(get_referencewords(), iqchecklib.get_identifiers(filenames))})
+    content.update({"negatives": iqchecklib.get_negativeidentifiers(get_referencewords(), iqchecklib.get_identifiers(filenames))})
+    content.update({"iqcheckscore": iqchecklib.iqcheckscore(get_referencewords(), iqchecklib.get_identifiers(filenames))})
+    return content
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description='Check python code identifiers quality.',
+    parser = argparse.ArgumentParser(description='Check program identifiers quality written Python through static code analysis.',
                                       formatter_class=RawTextHelpFormatter)
-    parser.add_argument("-m", "--metrics",
+    parser.add_argument("-m", "--metric",
                          nargs = 1,
                          help="get value of iqcheckscore")
     parser.add_argument("-f", "-fb", "--feedback",
@@ -276,9 +250,9 @@ def parse_arguments():
     parser.add_argument("filename", nargs="*", default = [""])
     
     args = parser.parse_args()
-    if args.metrics:
-        filenames = args.metrics[0]
-        function = "metrics"
+    if args.metric:
+        filenames = args.metric[0]
+        function = "metric"
     elif args.set:
         filenames = args.set[0]
         function = "set"
@@ -295,37 +269,34 @@ def main():
     filenames, function, outputformat = parse_arguments()
     logit = ""
     try:
-        if function in ('metrics') :
-            # metrics output human-readable format
-            results = { "iqcheckscore": iqchecklib.iqcheckscore(get_problem_vocabulary(), filenames) }
-            report = pack_results(results) if outputformat == 'json' else pack_readablemetrics(results)
+        if function in ('metric') :
+            # metric output human-readable format
+            if get_referencewords():
+                results = { "iqcheckscore": iqchecklib.iqcheckscore(get_referencewords(), iqchecklib.get_identifiers(filenames)) }
+                report = pack_results(results) if outputformat == 'json' else pack_readablemetric(results)
+            else:
+                report = NOREFERENCE
             
         elif function in ('set'): 
             # set reference solution file               
-            problem_file = glob.glob('*.yaml')
-            if not problem_file:
+            problemtext_filename = glob.glob('*.yaml')
+            if not problemtext_filename:
                 print( "iqcheck: the problem specification description in yaml file is needed.")
                 sys.exit()
 
-            elif problem_file and not problem_file[0]:
-                print( "iqcheck: the problem specification description in yaml file is needed.")
-                sys.exit()
-
-            problem_vocabulary = get_problemvocabulary(problem_file[0])
-            write_results("problem_vocabulary", problem_vocabulary, IQCHECKFILE)
-            results = get_rawmetrics(filenames)
-            write_results("reference_identifiers", results, IQCHECKFILE)
-
-            report = IQCHECKFILE + " was created."
+            else:
+                problem_vocabulary = iqchecklib.extract_problemvocabulary(problemtext_filename[0])
+                write_results("reference_words", problem_vocabulary, IQCHECKFILE)
+                identifiers = iqchecklib.get_identifiers(filenames)
+                write_results("reference_identifiers", identifiers, IQCHECKFILE)
+                report = IQCHECKFILE + " was created."
 
         elif function in ('feedback'): 
             # feedback output human-readable format
-            problem_file = glob.glob('*.yaml')
-            if not get_problemvocabulary(problem_file[0]):
+            if not get_referencewords():
                 report = NOREFERENCE
             else:
-                write_results("problem_vocabulary", get_problemvocabulary(problem_file[0]), IQCHECKFILE)
-                results = quality_report(get_report(filenames))
+                results = quality_report(filenames)
                 report = pack_results(results) if outputformat == 'json' else pack_markdownfeedback(filenames, results)
                 logit = get_logdata(filenames, pack_logfeedback(results))
         
@@ -339,7 +310,6 @@ def main():
         sys.exit(1)
     
 if __name__ == "__main__":
-    
     if len(sys.argv) < 2:
         print("Usage: tst iqcheck [options] code.py")
         sys.exit()
