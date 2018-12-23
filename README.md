@@ -24,7 +24,7 @@ positional arguments:
 
 optional arguments:
   -h, --help,        show this help message and exit
-  -m METRICS,        get value of iqcheckscore
+  -m METRIC,         get value of iqcheckscore
   -f FEEDBACK,       present warning messages referring to code identifiers quality
   -s SET,            set reference vocabulary and identifiers
   -o {human,json},   set output format
@@ -36,7 +36,7 @@ IQCHECK produces warning messages that give hints about **program identifiers** 
 
 ### Example
 ```
-$ tst qcheck code.py
+$ tst iqcheck code.py
 # code.py
 
 **2 Warning(s)** 
@@ -45,20 +45,14 @@ $ tst qcheck code.py
 - *x* does not appear to be a suitable name. You should use words from the programming assignment description.
 - *y* does not appear to be a suitable name. You should use words from the programming assignment description.
 ```
-In this sample execution, there are two identifiers name warnings. 
+In this sample execution, there are two identifiers warnings. 
 
-The identifiers name warnings suggest renaming the identifiers "x" and "y" because they appear not to be suitable names.
+The identifiers warnings suggest renaming the identifiers "x" and "y" because they do not appear to be suitable names.
 
 ## Dependencies
 
 This script is used as a TST custom command. TST must be installed in order to IQCHECK work properly. 
-IQCHECK also depends on:
- - radon
- - NLTK
- - cc
- - pycodestyle
-  
-Radon (https://pypi.python.org/pypi/radon) and NLTK (https://pypi.python.org/pypi/nltk) must be installed in your environment. Cc and Pycodestyle will be downloaded from public repositories during IQCHECK installation.
+IQCHECK also depends on NLTK (https://pypi.python.org/pypi/nltk). It must be installed in your environment.
 
 ## Installation
 

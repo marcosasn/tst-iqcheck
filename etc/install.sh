@@ -19,10 +19,6 @@ CONFIG_FILE=~/.tst/config.json
 UPDATE="false"
 BASHRC=~/.bashrc
 
-# URL
-CC_URL='https://raw.githubusercontent.com/mattjmorrison/Python-Cyclomatic-Complexity/master/cc.py'
-PYCODESTYLE_URL='https://raw.githubusercontent.com/PyCQA/pycodestyle/master/pycodestyle.py'
-
 # colors
 RESET="\033[0m"
 BLACK="\033[0;30m"
@@ -64,7 +60,6 @@ function print {
     if [ "$COLOR" == "" ]; then
         COLOR=$NORMAL
     fi
-
     echo -n -e $COLOR"$1"$RESET
 }
 
@@ -116,18 +111,6 @@ CURL=$(command -v curl)
 if [ $? != 0 ]; then
     print "The installation script requires the curl command\n" $WARNING
     print "Aborting installation\n"
-    exit 1
-fi
-
-# require radon or abort
-RADON=$(command -v radon)
-if [ $? != 0 ]; then
-    print "\nIqcheck requires radon\n" $WARNING
-    print "Get radon and install it as superuser. Check: https://pypi.python.org/pypi/radon.\n" $NORMAL
-    print "* Tip: sudo pip install radon\n" $IMPORTANT
-    print "\nDon't have pip either?\n" $NORMAL
-    print "* Tip: sudo apt-get install python-pip\n" $IMPORTANT
-    print "\nAborting installation\n" $NORMAL
     exit 1
 fi
 
@@ -211,29 +194,9 @@ mv marcosasn-tst-iqcheck*/commands/* $TST_DIR/commands/
 chmod +x $TST_DIR/commands/tst-iqcheck
 
 # download third party dependencies
-# pycodestyle
-curl -q $PYCODESTYLE_URL --output pycodestyle.py 2> /dev/null
-if [ $? != 0 ]; then
-    print "Couldn't download dependency\n" $WARNING
-    print "Installation aborted\n"
-    exit 1
-fi
-mv pycodestyle.py $TST_DIR/bin/
-chmod +x $TST_DIR/bin/pycodestyle.py
-
-# cc
-curl -q $CC_URL --output cc.py 2> /dev/null
-if [ $? != 0 ]; then
-    print "Couldn't download dependency\n" $WARNING
-    print "Installation aborted\n"
-    exit 1
-fi
-mv cc.py $TST_DIR/bin/
-chmod +x $TST_DIR/bin/cc.py
-
 print "* installing nltk data\n"
 ## nltk
-python -m nltk.downloader all 1> /dev/null
+python -m nltk.downloader all 2> /dev/null
 if [ $? != 0 ]; then
     print "Couldn't download dependency\n" $WARNING
     print "Installation aborted\n"
