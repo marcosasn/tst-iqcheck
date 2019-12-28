@@ -1,8 +1,8 @@
 # IQCHECK
 
-IQCHECK is a tst custom command to check student's solution code identifiers quality to a given problem. 
+IQCHECK is a TST custom command to check the quality of student's solution code identifiers to a given problem. 
 
-It is based on a well-known gold standard recommended in a book and also adopted by some software engineering literature initiatives towards improving the identifiers quality. Also, it is based on a previously developed tool: qcheck.
+It is based on a well-known gold standard recommended in a book and also adopted by some software engineering literature studies towards improving identifier quality. Also, it is based on a previously developed tool: QCHECK.
 
 ## License
 
@@ -33,7 +33,7 @@ optional arguments:
 
 ### Messages
 
-IQCHECK produces warning messages that give hints about **program identifiers** (programming solution identifiers). These warning messages are based on the similarity between the identifiers obtained from student program and the words extracted from problem specification text.
+IQCHECK produces warning messages that give hints about **program identifiers** (programming solution identifiers). These warning messages are produced when the lexicons obtained from student program identifiers have no terms extracted from problem specification text.
 
 ### Example
 ```
@@ -48,7 +48,7 @@ $ tst iqcheck code.py
 ```
 In this sample execution, there are two identifiers warnings. 
 
-The identifiers warnings suggest renaming the identifiers "x" and "y" because they do not appear to be suitable names.
+The identifiers warnings suggest renaming the names "x" and "y" because they do not appear to communicate concepts of the programming assignment description to the reader.
 
 ## Dependencies
 
